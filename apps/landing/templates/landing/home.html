@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ site.name }} — {{ site.tagline }}{% endblock %}
+
+{% block meta %}
+  <meta name="description" content="{{ site.meta_description }}">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --color-primary: {{ theme.color_primary }};
+    --color-primary-dark: {{ theme.color_primary_dark }};
+    --color-bg: {{ theme.color_bg }};
+    --color-surface: {{ theme.color_surface }};
+    --color-text: {{ theme.color_text }};
+    --color-muted: {{ theme.color_muted }};
+    --color-border: {{ theme.color_border }};
+    --radius: {{ theme.radius }};
+    --max-width: {{ theme.max_width }};
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="container">
+    <h1>{{ hero.headline }}</h1>
+    <p class="hero-sub">{{ hero.subheadline }}</p>
+    <a class="btn btn-primary" href="{{ hero.cta_anchor }}">{{ hero.cta_text }}</a>
+  </div>
+</section>
+
+<section class="services" id="servicios">
+  <div class="container">
+    <h2>{{ services_section.title }}</h2>
+    <p class="section-sub">{{ services_section.subtitle }}</p>
+    <div class="cards-grid">
+      {% for service in services %}
+      <article class="card">
+        <span class="card-icon" aria-hidden="true">{{ service.icon }}</span>
+        <h3>{{ service.title }}</h3>
+        <p>{{ service.description }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="value-props">
+  <div class="container">
+    <h2>{{ value_props_section.title }}</h2>
+    <div class="props-grid">
+      {% for prop in value_props %}
+      <div class="prop">
+        <h3>{{ prop.title }}</h3>
+        <p>{{ prop.text }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="steps" id="como-trabajamos">
+  <div class="container">
+    <h2>{{ steps_section.title }}</h2>
+    <p class="section-sub">{{ steps_section.subtitle }}</p>
+    <ol class="steps-grid">
+      {% for step in steps %}
+      <li class="step">
+        <span class="step-number">{{ step.number }}</span>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.text }}</p>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+
+{# Social proof: descomentar y rellenar cuando haya testimonios/logos reales.
+<section class="social-proof">
+  <div class="container">
+    <h2>Confían en nosotros</h2>
+  </div>
+</section>
+#}
+
+<section class="contact" id="contacto">
+  <div class="container container-narrow">
+    <h2>{{ form_section.title }}</h2>
+    <p class="section-sub">{{ form_section.subtitle }}</p>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {{ form.website }}
+      <div class="form-field">
+        {{ form.name.label_tag }}
+        {{ form.name }}
+        {{ form.name.errors }}
+      </div>
+      <div class="form-field">
+        {{ form.email.label_tag }}
+        {{ form.email }}
+        {{ form.email.errors }}
+      </div>
+      <div class="form-field">
+        {{ form.company.label_tag }}
+        {{ form.company }}
+        {{ form.company.errors }}
+      </div>
+      <div class="form-field">
+        {{ form.service_interest.label_tag }}
+        {{ form.service_interest }}
+        {{ form.service_interest.errors }}
+      </div>
+      <div class="form-field">
+        {{ form.message.label_tag }}
+        {{ form.message }}
+        {{ form.message.errors }}
+      </div>
+      <button type="submit" class="btn btn-primary">{{ form_section.submit_text }}</button>
+    </form>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <p>{{ footer.text }}{% if contact.email %} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}{% if contact.phone %} · {{ contact.phone }}{% endif %}</p>
+  </div>
+</footer>
+{% endblock %}

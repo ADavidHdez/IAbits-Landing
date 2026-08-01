@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Sitio{% endblock %}</title>
+  {% block meta %}{% endblock %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <nav>
+    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
+    {% comment %}
+    <a href="{% url 'landing:home' %}">Inicio</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'accounts:logout' %}">Cerrar sesión</a>
+    {% else %}
+      <a href="{% url 'accounts:login' %}">Iniciar sesión</a>
+    {% endif %}
+    {% endcomment %}
+  </nav>
+
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
