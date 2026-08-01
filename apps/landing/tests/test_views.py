@@ -42,6 +42,7 @@ class LandingViewPostTests(TestCase):
         self.assertEqual(Lead.objects.count(), 1)
         lead = Lead.objects.get()
         self.assertEqual(lead.email, 'ana@empresa.com')
+        self.assertEqual(lead.message, 'Quiero una base de conocimiento.')
         self.assertRedirects(response, self.url + '#contacto')
 
     def test_valid_post_shows_success_message(self):
