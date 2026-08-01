@@ -172,6 +172,35 @@ nav a:hover {
   text-align: center;
 }
 
+/* El borde/sombra se derivan de --color-primary con color-mix; los navegadores
+   sin soporte descartan esas declaraciones y conservan las de la línea previa. */
+.prop {
+  padding: 1.75rem 1.5rem;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-color: color-mix(in srgb, var(--color-primary, #1a56db) 25%, transparent);
+  border-radius: var(--radius, 12px);
+  transition: translate 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.prop:hover {
+  translate: 0 -6px;
+  border-color: var(--color-primary, #1a56db);
+  box-shadow: 0 12px 24px -12px rgba(26, 86, 219, 0.45);
+  box-shadow: 0 12px 24px -12px color-mix(in srgb, var(--color-primary, #1a56db) 45%, transparent);
+  animation: prop-buzz 0.45s ease-in-out;
+}
+
+/* Balanceo amortiguado, tipo notificación. Anima `rotate` en lugar de
+   `transform` para no pisar el `translate` de la elevación. */
+@keyframes prop-buzz {
+  0% { rotate: 0deg; }
+  20% { rotate: 1.5deg; }
+  45% { rotate: -1.2deg; }
+  70% { rotate: 0.8deg; }
+  88% { rotate: -0.4deg; }
+  100% { rotate: 0deg; }
+}
+
 .prop h3 {
   font-size: 1.15rem;
   margin-bottom: 0.5rem;
@@ -270,13 +299,18 @@ nav a:hover {
   margin-top: 0.35rem;
 }
 
+.btn:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
 /* Honeypot: fuera de pantalla para humanos, visible para bots */
 .hp-field {
   position: absolute;
   left: -9999px;
 }
 
-/* --- Mensajes (base.html) --- */
+/* --- Mensajes (base.html / partials/messages.html) --- */
 
 .messages {
   list-style: none;
@@ -303,6 +337,58 @@ nav a:hover {
   background: #fef2f2;
   border-color: #fecaca;
   color: #991b1b;
+}
+
+/* Mensaje de confirmación bajo el formulario de contacto */
+
+.form-feedback .messages {
+  max-width: none;
+  padding: 0;
+}
+
+.form-feedback .messages li {
+  margin: 1.25rem 0 0;
+  text-align: center;
+  font-weight: 500;
+  animation: feedback-in 0.35s ease-out both;
+}
+
+@keyframes feedback-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+/* --- Confeti (static/js/confetti.js) --- */
+
+.confetti-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .form-feedback .messages li {
+    animation: none;
+  }
+
+  /* Se conservan el borde y la sombra; se eliminan elevación y balanceo. */
+  .prop {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .prop:hover {
+    translate: none;
+    animation: none;
+  }
 }
 
 /* --- Footer --- */

@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.http import JsonResponse
 from django.urls import reverse
 from django.views.generic import CreateView
 
@@ -19,8 +20,30 @@ class LandingView(CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
+        if self.is_ajax:
+            return JsonResponse({
+                'ok': True,
+                'message': content.FORM_SECTION['success_message'],
+            })
         messages.success(self.request, content.FORM_SECTION['success_message'])
         return response
 
+    def form_invalid(self, form):
+        if self.is_ajax:
+            return JsonResponse(
+                {'ok': False, 'errors': form.errors.get_json_data()},
+                status=400,
+            )
+        return super().form_invalid(form)
+
     def get_success_url(self):
         return reverse('landing:home') + '#contacto'
+
+    @property
+    def is_ajax(self) -> bool:
+        """El formulario se envía por fetch() desde static/js/lead-form.js.
+
+        Sin JS el navegador hace un POST normal y se mantiene el flujo
+        Post/Redirect/Get con mensajes de Django.
+        """
+        return self.request.headers.get('x-requested-with') == 'XMLHttpRequest'

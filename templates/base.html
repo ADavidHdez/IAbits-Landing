@@ -22,13 +22,8 @@
     {% endcomment %}
   </nav>
 
-  {% if messages %}
-    <ul class="messages">
-      {% for message in messages %}
-        <li class="{{ message.tags }}">{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+  {# Las páginas que colocan los mensajes en otro sitio sobrescriben este bloque. #}
+  {% block messages %}{% include 'partials/messages.html' %}{% endblock %}
 
   <main>
     {% block content %}{% endblock %}

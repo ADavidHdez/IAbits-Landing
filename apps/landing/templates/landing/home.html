@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ site.name }} — {{ site.tagline }}{% endblock %}
 
@@ -21,6 +22,9 @@
   }
 </style>
 {% endblock %}
+
+{# Los mensajes se muestran junto al formulario, no en la cabecera. #}
+{% block messages %}{% endblock %}
 
 {% block content %}
 <section class="hero">
@@ -89,37 +93,42 @@
   <div class="container container-narrow">
     <h2>{{ form_section.title }}</h2>
     <p class="section-sub">{{ form_section.subtitle }}</p>
-    <form method="post" novalidate>
+    <form method="post" novalidate data-lead-form data-error-message="{{ form_section.error_message }}">
       {% csrf_token %}
-      {{ form.non_field_errors }}
+      <div data-form-errors>{{ form.non_field_errors }}</div>
       {{ form.website }}
-      <div class="form-field">
+      <div class="form-field" data-field="name">
         {{ form.name.label_tag }}
         {{ form.name }}
         {{ form.name.errors }}
       </div>
-      <div class="form-field">
+      <div class="form-field" data-field="email">
         {{ form.email.label_tag }}
         {{ form.email }}
         {{ form.email.errors }}
       </div>
-      <div class="form-field">
+      <div class="form-field" data-field="company">
         {{ form.company.label_tag }}
         {{ form.company }}
         {{ form.company.errors }}
       </div>
-      <div class="form-field">
+      <div class="form-field" data-field="service_interest">
         {{ form.service_interest.label_tag }}
         {{ form.service_interest }}
         {{ form.service_interest.errors }}
       </div>
-      <div class="form-field">
+      <div class="form-field" data-field="message">
         {{ form.message.label_tag }}
         {{ form.message }}
         {{ form.message.errors }}
       </div>
-      <button type="submit" class="btn btn-primary">{{ form_section.submit_text }}</button>
+      <button type="submit" class="btn btn-primary" data-sending-text="{{ form_section.sending_text }}">{{ form_section.submit_text }}</button>
     </form>
+
+    {# Destino del mensaje de confirmación: servidor (sin JS) y fetch() (con JS). #}
+    <div class="form-feedback" role="status" aria-live="polite" data-form-feedback>
+      {% include 'partials/messages.html' %}
+    </div>
   </div>
 </section>
 
@@ -128,4 +137,9 @@
     <p>{{ footer.text }}{% if contact.email %} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}{% if contact.phone %} · {{ contact.phone }}{% endif %}</p>
   </div>
 </footer>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/confetti.js' %}" defer></script>
+<script src="{% static 'js/lead-form.js' %}" defer></script>
 {% endblock %}

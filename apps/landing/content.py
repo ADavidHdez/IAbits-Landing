@@ -169,7 +169,11 @@ FORM_SECTION = {
         'sin compromiso.'
     ),
     'submit_text': 'Solicitar diagnóstico gratuito',
+    'sending_text': 'Enviando…',
     'success_message': 'Gracias por tu interés. Te contactaremos en menos de 24 horas.',
+    'error_message': (
+        'No hemos podido enviar tu solicitud. Inténtalo de nuevo en unos minutos.'
+    ),
 }
 
 CONTACT = {
