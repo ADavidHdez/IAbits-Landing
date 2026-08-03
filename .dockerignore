@@ -6,3 +6,12 @@ db.sqlite3
 staticfiles/
 media/
 .env
+.env.example
+.gitignore
+.dockerignore
+Dockerfile
+CLAUDE.md
+notas-aprendizaje.md
+requirements/development.txt
+apps/accounts/tests/
+apps/landing/tests/
