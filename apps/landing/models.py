@@ -10,6 +10,8 @@ class Lead(models.Model):
     company = models.CharField('empresa', max_length=120, blank=True)
     service_interest = models.CharField('servicio de interés', max_length=60, blank=True)
     message = models.TextField('mensaje', blank=True)
+    ip_address = models.GenericIPAddressField('IP de origen', null=True, blank=True)
+    user_agent = models.CharField('user agent', max_length=255, blank=True)
     created_at = models.DateTimeField('fecha de creación', auto_now_add=True)
 
     class Meta:

@@ -106,4 +106,8 @@ STORAGES = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Límite de envíos del formulario de leads por IP dentro de la ventana.
+LEAD_THROTTLE_MAX = config('LEAD_THROTTLE_MAX', default=5, cast=int)
+LEAD_THROTTLE_WINDOW_MINUTES = config('LEAD_THROTTLE_WINDOW_MINUTES', default=60, cast=int)
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

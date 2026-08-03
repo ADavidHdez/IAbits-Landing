@@ -60,9 +60,9 @@ class LandingViewPostTests(TestCase):
         self.assertEqual(Lead.objects.count(), 0)
         self.assertContains(response, content.HERO['headline'])
 
-    def test_honeypot_post_creates_nothing(self):
+    def test_honeypot_post_fakes_success_and_creates_nothing(self):
         response = self.client.post(self.url, {**self.data, 'website': 'http://spam.example'})
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, self.url + '#contacto')
         self.assertEqual(Lead.objects.count(), 0)
 
 
@@ -101,8 +101,8 @@ class LandingViewAjaxPostTests(TestCase):
         self.assertIn('email', payload['errors'])
         self.assertEqual(Lead.objects.count(), 0)
 
-    def test_honeypot_post_returns_400_and_creates_nothing(self):
+    def test_honeypot_post_fakes_success_and_creates_nothing(self):
         response = self.post({**self.data, 'website': 'http://spam.example'})
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('website', response.json()['errors'])
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['ok'])
         self.assertEqual(Lead.objects.count(), 0)

@@ -37,10 +37,21 @@ class LeadFormTests(SimpleTestCase):
         form = LeadForm(data=valid_data(company='', service_interest='', message=''))
         self.assertTrue(form.is_valid(), form.errors)
 
-    def test_honeypot_filled_is_invalid(self):
-        form = LeadForm(data=valid_data(website='http://spam.example'))
+    def test_honeypot_field_is_hidden_and_optional(self):
+        # El descarte del honeypot lo hace la vista (éxito falso); el form solo
+        # debe renderizar el campo oculto sin exigirlo.
+        form = LeadForm()
+        self.assertFalse(form.fields['website'].required)
+        self.assertIn('hp-field', form.fields['website'].widget.attrs['class'])
+
+    def test_message_over_2000_chars_is_invalid(self):
+        form = LeadForm(data=valid_data(message='x' * 2001))
         self.assertFalse(form.is_valid())
-        self.assertIn('website', form.errors)
+        self.assertIn('message', form.errors)
+
+    def test_message_of_2000_chars_is_valid(self):
+        form = LeadForm(data=valid_data(message='x' * 2000))
+        self.assertTrue(form.is_valid(), form.errors)
 
     def test_service_choices_track_content(self):
         choices = dict(LeadForm().fields['service_interest'].choices)

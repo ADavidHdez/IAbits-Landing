@@ -5,7 +5,8 @@ from .models import Lead
 
 
 class LeadForm(forms.ModelForm):
-    # Honeypot: oculto vía CSS (.hp-field); si un bot lo rellena, el form es inválido.
+    # Honeypot: oculto vía CSS (.hp-field). La vista descarta en silencio los
+    # envíos que lo traigan relleno, sin revelar al bot cuál es el campo trampa.
     website = forms.CharField(
         required=False,
         label='',
@@ -33,6 +34,7 @@ class LeadForm(forms.ModelForm):
             'message': forms.Textarea(attrs={
                 'placeholder': '¿Qué proceso te gustaría automatizar?',
                 'rows': 4,
+                'maxlength': '2000',
             }),
         }
 
@@ -46,7 +48,8 @@ class LeadForm(forms.ModelForm):
             label='Servicio de interés',
         )
 
-    def clean_website(self):
-        if self.cleaned_data.get('website'):
-            raise forms.ValidationError('Spam detectado.')
-        return ''
+    def clean_message(self):
+        message = self.cleaned_data.get('message', '')
+        if len(message) > 2000:
+            raise forms.ValidationError('El mensaje no puede superar los 2000 caracteres.')
+        return message
