@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   :root {
     --color-primary: {{ theme.color_primary }};
     --color-primary-dark: {{ theme.color_primary_dark }};
