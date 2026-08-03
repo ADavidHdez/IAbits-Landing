@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.landing import content
@@ -106,3 +106,92 @@ class LandingViewAjaxPostTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()['ok'])
         self.assertEqual(Lead.objects.count(), 0)
+
+
+class SecurityTests(TestCase):
+    def setUp(self):
+        self.url = reverse('landing:home')
+        self.data = {
+            'name': 'Ana Pérez',
+            'email': 'ana@empresa.com',
+            'company': 'Empresa SA',
+            'service_interest': 'base-conocimiento',
+            'message': 'Quiero una base de conocimiento.',
+            'website': '',
+        }
+
+    def test_post_without_csrf_token_is_rejected(self):
+        client = Client(enforce_csrf_checks=True)
+        response = client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(Lead.objects.count(), 0)
+
+    def test_script_in_field_is_escaped_when_rerendered(self):
+        payload = {**self.data, 'email': '', 'name': '<script>alert(1)</script>'}
+        response = self.client.post(self.url, payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, '<script>alert(1)</script>')
+        self.assertContains(response, '&lt;script&gt;')
+
+    def test_admin_requires_authentication(self):
+        response = self.client.get(reverse('admin:index'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response['Location'])
+
+    def test_lead_stores_client_ip_and_user_agent(self):
+        self.client.post(
+            self.url,
+            self.data,
+            HTTP_X_FORWARDED_FOR='203.0.113.7, 10.0.0.2',
+            HTTP_USER_AGENT='NavegadorPrueba/1.0',
+        )
+        lead = Lead.objects.get()
+        self.assertEqual(lead.ip_address, '203.0.113.7')
+        self.assertEqual(lead.user_agent, 'NavegadorPrueba/1.0')
+
+
+@override_settings(LEAD_THROTTLE_MAX=3, LEAD_THROTTLE_WINDOW_MINUTES=60)
+class LeadThrottleTests(TestCase):
+    def setUp(self):
+        self.url = reverse('landing:home')
+        self.data = {
+            'name': 'Ana Pérez',
+            'email': 'ana@empresa.com',
+            'company': 'Empresa SA',
+            'service_interest': 'base-conocimiento',
+            'message': 'Quiero una base de conocimiento.',
+            'website': '',
+        }
+
+    def post(self, ajax=False, ip='203.0.113.7'):
+        headers = {'x-requested-with': 'XMLHttpRequest'} if ajax else {}
+        return self.client.post(self.url, self.data, headers=headers, REMOTE_ADDR=ip)
+
+    def test_post_over_limit_same_ip_is_throttled(self):
+        for _ in range(3):
+            self.post()
+        response = self.post(ajax=True)
+        self.assertEqual(response.status_code, 429)
+        self.assertIn('__all__', response.json()['errors'])
+        self.assertEqual(Lead.objects.count(), 3)
+
+    def test_throttled_classic_post_redirects_without_creating(self):
+        for _ in range(3):
+            self.post()
+        response = self.post()
+        self.assertRedirects(response, self.url + '#contacto')
+        self.assertEqual(Lead.objects.count(), 3)
+
+    def test_other_ip_not_affected(self):
+        for _ in range(3):
+            self.post()
+        response = self.post(ip='198.51.100.9')
+        self.assertRedirects(response, self.url + '#contacto')
+        self.assertEqual(Lead.objects.count(), 4)
+
+    def test_x_forwarded_for_first_ip_wins(self):
+        for _ in range(4):
+            self.client.post(
+                self.url, self.data, HTTP_X_FORWARDED_FOR='203.0.113.7, 10.0.0.2'
+            )
+        self.assertEqual(Lead.objects.count(), 3)
