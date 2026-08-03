@@ -1,7 +1,10 @@
 .env
+.env.*
+!.env.example
 *.pyc
 __pycache__/
-db.sqlite3
+*.sqlite3
+*.log
 staticfiles/
 media/
 .venv/
@@ -9,4 +12,6 @@ media/
 dist/
 .coverage
 htmlcov/
+.vscode/
+.idea/
 notas-aprendizaje.md

@@ -259,7 +259,7 @@ Follow the [Django security checklist](https://docs.djangoproject.com/en/stable/
 - `DEBUG = False` in production.
 - `SECRET_KEY` from environment, never committed.
 - Set `SECURE_HSTS_SECONDS`, `SECURE_SSL_REDIRECT = True`, `X_FRAME_OPTIONS = 'DENY'`.
-- Enable `SECURE_CONTENT_TYPE_NOSNIFF = True` and `SECURE_BROWSER_XSS_FILTER = True`.
+- Enable `SECURE_CONTENT_TYPE_NOSNIFF = True`. (`SECURE_BROWSER_XSS_FILTER` no longer exists in Django ≥5.1.)
 - Validate all user input via Forms — never trust raw `request.POST` or `request.GET`.
 - Parameterize all ORM queries; never use `RawSQL` with string interpolation.
 - Use `django.middleware.security.SecurityMiddleware` (included by default).
