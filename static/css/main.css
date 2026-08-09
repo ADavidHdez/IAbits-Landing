@@ -209,7 +209,12 @@ nav a:hover {
 
 /* Tres columnas: tarjeta | nodo | icono. Las pares intercambian los extremos,
    de ahí el zigzag. Todo en la misma fila para que el nodo quede centrado. */
+/* Las líneas son pseudo-elementos absolutos de .timeline, así que por orden de
+   pintado quedarían por encima del contenido. Posicionar la fila las manda
+   detrás de nodos e iconos. */
 .timeline-item {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -236,13 +241,14 @@ nav a:hover {
   grid-column: 1;
 }
 
-/* El punto tapa el hilo con su propio fondo, por eso no es transparente. */
+/* El relleno usa el fondo de la sección, no el blanco de las tarjetas: así el
+   punto tapa el hilo sin que se note el recorte. */
 .timeline-node {
   grid-column: 2;
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--color-bg, #ffffff);
+  background: var(--color-surface, #f6f8fb);
   border: 2px solid var(--color-border, #e5e7eb);
   border-color: color-mix(in srgb, var(--color-primary, #1a56db) 25%, transparent);
   transition:
@@ -258,8 +264,9 @@ nav a:hover {
   opacity: 0;
 }
 
-/* .is-lit la asigna static/js/timeline.js cuando el trazo azul alcanza la
-   altura del icono, y no se retira: el recorrido queda marcado. */
+/* Dos marcas distintas de static/js/timeline.js: .is-lit sigue al trazo en
+   ambos sentidos (el punto vuelve a su color al subir) y .is-shown es de ida,
+   para que el icono no parpadee cada vez que se sube y se baja. */
 .timeline-item.is-lit .timeline-node {
   background: var(--color-primary, #1a56db);
   border-color: var(--color-primary, #1a56db);
@@ -267,7 +274,7 @@ nav a:hover {
   box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary, #1a56db) 12%, transparent);
 }
 
-.timeline-item.is-lit .timeline-icon {
+.timeline-item.is-shown .timeline-icon {
   animation: icon-pop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
@@ -667,7 +674,7 @@ nav a:hover {
   }
 
   .timeline-icon,
-  .timeline-item.is-lit .timeline-icon {
+  .timeline-item.is-shown .timeline-icon {
     opacity: 1;
     transform: none;
     animation: none;
@@ -705,7 +712,8 @@ nav a:hover {
   }
 
   /* Sin lado contrario disponible, el icono vuelve a hacer de nodo y el punto
-     sobra. El fondo circular es lo que impide que el hilo lo atraviese. */
+     sobra. El disco toma el color de la sección: el hilo pasa por detrás sin
+     que se vea ni el cruce ni el propio disco. */
   .timeline-node {
     display: none;
   }
@@ -720,7 +728,7 @@ nav a:hover {
     height: 3.5rem;
     font-size: 2rem;
     border-radius: 50%;
-    background: var(--color-bg, #ffffff);
+    background: var(--color-surface, #f6f8fb);
   }
 
   .timeline-item > .card,
