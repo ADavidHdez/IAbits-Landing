@@ -94,19 +94,78 @@ a {
 }
 
 /* --- Nav --- */
-.logo {
-  height: 8.5rem;
-  width: auto;
-}
 
 nav {
   display: flex;
   gap: 1.5rem;
   align-items: center;
+  justify-content: center;
   max-width: var(--max-width, 1080px);
   margin: 0 auto;
-  padding: 1rem 1.5rem;
-  justify-content: center;
+  /* El margen inferior lo aportaba antes el hueco transparente del PNG; sin él
+     el aire hay que ponerlo arriba, donde el logo llegaría al borde. */
+  padding: 2rem 1.5rem 0;
+}
+
+/* Dos animaciones a la vez sin conflicto: la entrada usa `opacity` y `scale`,
+   la flotación usa `translate`. Al ser propiedades independientes de
+   `transform`, cada una anima la suya sin pisar a la otra. */
+.logo-frame {
+  position: relative;
+  display: inline-block;
+  animation:
+    logo-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both,
+    logo-float 4.5s ease-in-out 0.8s infinite;
+}
+
+.logo {
+  display: block;
+  height: 11rem;
+  width: auto;
+}
+
+/* Destello: la máscara con el propio PNG limita el brillo a la silueta del
+   logo en lugar de barrer todo su rectángulo. */
+.logo-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 44%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 56%
+  );
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  -webkit-mask: url('../img/logo-trimmed.png') center / contain no-repeat;
+  mask: url('../img/logo-trimmed.png') center / contain no-repeat;
+  animation: logo-shine 6s ease-in-out 1.8s infinite;
+}
+
+@keyframes logo-in {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+}
+
+@keyframes logo-float {
+  50% {
+    translate: 0 -6px;
+  }
+}
+
+/* Porcentajes altos desplazan el degradado hacia la izquierda, de ahí que el
+   recorrido vaya de mayor a menor para que el brillo barra de izquierda a derecha. */
+@keyframes logo-shine {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
 }
 
 nav a {
@@ -144,8 +203,10 @@ nav a:hover {
 
 /* --- Hero --- */
 
+/* El margen superior es la mitad del anterior: el logo queda cerca del titular
+   pero sin llegar a tocarlo. */
 .hero {
-  padding: 6.5rem 0 5.5rem;
+  padding: 3.25rem 0 5.5rem;
   text-align: center;
 }
 
@@ -626,6 +687,15 @@ nav a:hover {
     scroll-behavior: auto;
   }
 
+  /* El logo se muestra fijo: ni entrada, ni flotación, ni destello. */
+  .logo-frame {
+    animation: none;
+  }
+
+  .logo-frame::after {
+    display: none;
+  }
+
   .form-feedback .messages li {
     animation: none;
   }
@@ -751,7 +821,12 @@ nav a:hover {
   }
 
   .hero {
-    padding: 4rem 0 3.5rem;
+    padding: 2rem 0 3.5rem;
+  }
+
+  /* A 11 rem el logo se comería buena parte de la primera pantalla. */
+  .logo {
+    height: 8rem;
   }
 
   h2 {

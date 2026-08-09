@@ -11,7 +11,15 @@
 </head>
 <body>
   <nav>
-    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
+    {% comment %}
+    logo-trimmed.png es logo.png sin el margen transparente que ocupaba el 63%
+    del alto del archivo. Gracias a eso el logo se ve mucho mayor sin que su
+    caja crezca. Si se sustituye el logo, hay que recortar el nuevo igual.
+    El contenedor aporta el pseudo-elemento del destello, que un <img> no puede tener.
+    {% endcomment %}
+    <span class="logo-frame">
+      <img src="{% static 'img/logo-trimmed.png' %}" alt="Logo" class="logo">
+    </span>
     {% comment %}
     <a href="{% url 'landing:home' %}">Inicio</a>
     {% if user.is_authenticated %}
