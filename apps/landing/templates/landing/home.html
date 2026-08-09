@@ -23,10 +23,9 @@
 </style>
 <noscript>
   <style>
-    /* Sin JS no hay observador que revele las tarjetas: se muestran ya visibles. */
-    .card {
+    /* Sin JS no hay observador que revele los bloques: se muestran ya visibles. */
+    [data-reveal] {
       opacity: 1;
-      transform: none;
     }
   </style>
 </noscript>
@@ -38,9 +37,9 @@
 {% block content %}
 <section class="hero">
   <div class="container">
-    <h1>{{ hero.headline }}</h1>
-    <p class="hero-sub">{{ hero.subheadline }}</p>
-    <a class="btn btn-primary" href="{{ hero.cta_anchor }}">{{ hero.cta_text }}</a>
+    <h1 data-reveal>{{ hero.headline }}</h1>
+    <p class="hero-sub" data-reveal>{{ hero.subheadline }}</p>
+    <a class="btn btn-primary" href="{{ hero.cta_anchor }}" data-reveal>{{ hero.cta_text }}</a>
   </div>
 </section>
 
@@ -48,9 +47,9 @@
   <div class="container">
     <h2>{{ services_section.title }}</h2>
     <p class="section-sub">{{ services_section.subtitle }}</p>
-    <div class="cards-grid">
+    <div class="cards-grid" data-reveal-group>
       {% for service in services %}
-      <article class="card" data-card-3d>
+      <article class="card" data-card-3d data-reveal>
         <div class="card-face">
           <span class="card-icon" aria-hidden="true">{{ service.icon }}</span>
           <h3>{{ service.title }}</h3>
@@ -65,9 +64,9 @@
 <section class="value-props">
   <div class="container">
     <h2>{{ value_props_section.title }}</h2>
-    <div class="props-grid">
+    <div class="props-grid" data-reveal-group>
       {% for prop in value_props %}
-      <div class="prop">
+      <div class="prop" data-reveal>
         <h3>{{ prop.title }}</h3>
         <p>{{ prop.text }}</p>
       </div>
@@ -80,9 +79,9 @@
   <div class="container">
     <h2>{{ steps_section.title }}</h2>
     <p class="section-sub">{{ steps_section.subtitle }}</p>
-    <ol class="steps-grid">
+    <ol class="steps-grid" data-reveal-group>
       {% for step in steps %}
-      <li class="step">
+      <li class="step" data-reveal>
         <span class="step-number">{{ step.number }}</span>
         <h3>{{ step.title }}</h3>
         <p>{{ step.text }}</p>
@@ -107,7 +106,7 @@ solo comenta una única línea y el resto se renderiza como HTML.
   <div class="container container-narrow">
     <h2>{{ form_section.title }}</h2>
     <p class="section-sub">{{ form_section.subtitle }}</p>
-    <form method="post" novalidate data-lead-form data-error-message="{{ form_section.error_message }}">
+    <form method="post" novalidate data-reveal data-lead-form data-error-message="{{ form_section.error_message }}">
       {% csrf_token %}
       <div data-form-errors>{{ form.non_field_errors }}</div>
       {{ form.website }}
@@ -156,6 +155,7 @@ solo comenta una única línea y el resto se renderiza como HTML.
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/reveal.js' %}" defer></script>
 <script src="{% static 'js/cards-3d.js' %}" defer></script>
 <script src="{% static 'js/confetti.js' %}" defer></script>
 <script src="{% static 'js/lead-form.js' %}" defer></script>

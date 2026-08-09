@@ -1,12 +1,13 @@
-/* Efectos 3D de las tarjetas de servicios, sin dependencias externas.
+/* Interacción 3D de las tarjetas de servicios, sin dependencias externas.
 
-   Tres comportamientos, todos apoyados en clases y custom properties que
-   consume main.css:
-     1. Entrada escalonada al aparecer en pantalla (clase .is-visible).
-     2. Escritorio: inclinación que sigue al puntero (--tilt-x / --tilt-y).
-     3. Táctil: la tarjeta centrada en el viewport se activa (.is-active).
+   Dos comportamientos, apoyados en clases y custom properties que consume
+   main.css:
+     1. Escritorio: inclinación que sigue al puntero (--tilt-x / --tilt-y).
+     2. Táctil: la tarjeta centrada en el viewport se activa (.is-active).
 
-   Con prefers-reduced-motion solo se revelan las tarjetas, sin movimiento. */
+   La entrada escalonada al hacer scroll no vive aquí: la gestiona reveal.js
+   junto con la del resto de la página. Con prefers-reduced-motion no se
+   registra ningún listener. */
 (function (window, document) {
   'use strict';
 
@@ -22,30 +23,9 @@
     return !!window.matchMedia && window.matchMedia(query).matches;
   }
 
-  var reducedMotion = matches('(prefers-reduced-motion: reduce)');
+  if (matches('(prefers-reduced-motion: reduce)')) return;
+
   var finePointer = matches('(hover: hover) and (pointer: fine)');
-
-  function reveal(card) {
-    card.classList.add('is-visible');
-  }
-
-  if (reducedMotion || !('IntersectionObserver' in window)) {
-    cards.forEach(reveal);
-  } else {
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        reveal(entry.target);
-        observer.unobserve(entry.target);
-      });
-    }, { threshold: 0.25, rootMargin: '0px 0px -10% 0px' });
-
-    cards.forEach(function (card) {
-      observer.observe(card);
-    });
-  }
-
-  if (reducedMotion) return;
 
   function enableTilt(card) {
     var frame = null;

@@ -57,6 +57,42 @@ a {
   color: var(--color-primary, #1a56db);
 }
 
+/* --- Aparición al hacer scroll --- */
+
+/* static/js/reveal.js añade .is-revealed al entrar el elemento en pantalla y,
+   cuando la animación termina, le quita el atributo data-reveal para que estas
+   reglas dejen de aplicarse. Así el elemento queda limpio y la animación no
+   compite con las que ya usan .prop:hover o .card. */
+[data-reveal] {
+  opacity: 0;
+}
+
+[data-reveal].is-revealed {
+  opacity: 1;
+  animation: reveal-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+/* El hero ya está en pantalla al cargar, así que se escalona en cualquier ancho. */
+.hero [data-reveal]:nth-child(2) { animation-delay: 110ms; }
+.hero [data-reveal]:nth-child(3) { animation-delay: 220ms; }
+
+/* El escalonado solo aporta cuando varios elementos entran a la vez. En una
+   sola columna cada bloque llega por su cuenta y el retardo solo haría esperar. */
+@media (min-width: 641px) {
+  [data-reveal-group] > *:nth-child(2) { animation-delay: 90ms; }
+  [data-reveal-group] > *:nth-child(3) { animation-delay: 180ms; }
+  [data-reveal-group] > *:nth-child(4) { animation-delay: 270ms; }
+  [data-reveal-group] > *:nth-child(5) { animation-delay: 360ms; }
+  [data-reveal-group] > *:nth-child(6) { animation-delay: 450ms; }
+}
+
 /* --- Nav --- */
 .logo {
   height: 8.5rem;
@@ -146,24 +182,20 @@ nav a:hover {
 .card {
   display: flex;
   perspective: 900px;
-  opacity: 0;
-  transform: perspective(1000px) translate3d(0, 2.5rem, 0) rotateX(12deg);
-  transition:
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.7s ease;
 }
 
-/* La añade static/js/cards-3d.js cuando la tarjeta entra en pantalla. */
-.card.is-visible {
-  opacity: 1;
-  transform: perspective(1000px) translate3d(0, 0, 0) rotateX(0deg);
+/* Las tarjetas de servicios sustituyen el fundido genérico por una entrada
+   girada en perspectiva; el resto de la página usa reveal-rise. */
+.card[data-reveal].is-revealed {
+  animation: card-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.card:nth-child(2) { transition-delay: 80ms; }
-.card:nth-child(3) { transition-delay: 160ms; }
-.card:nth-child(4) { transition-delay: 240ms; }
-.card:nth-child(5) { transition-delay: 320ms; }
-.card:nth-child(6) { transition-delay: 400ms; }
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: perspective(1000px) translate3d(0, 2.5rem, 0) rotateX(12deg);
+  }
+}
 
 .card-face {
   flex: 1;
@@ -474,12 +506,12 @@ nav a:hover {
     animation: none;
   }
 
-  /* Las tarjetas de servicios se muestran ya colocadas, sin entrada ni 3D. */
-  .card,
-  .card.is-visible {
+  /* Todo aparece ya colocado: ni entrada al hacer scroll ni 3D. */
+  [data-reveal],
+  [data-reveal].is-revealed {
     opacity: 1;
     transform: none;
-    transition: none;
+    animation: none;
   }
 
   .card-face,
