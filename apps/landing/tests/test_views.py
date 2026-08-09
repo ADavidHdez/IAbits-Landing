@@ -24,6 +24,12 @@ class LandingViewGetTests(TestCase):
         response = self.client.get(self.url)
         self.assertContains(response, content.THEME['color_primary'])
 
+    def test_commented_out_sections_are_not_rendered(self):
+        """La sintaxis {# #} solo comenta una línea: los bloques usan {% comment %}."""
+        response = self.client.get(self.url)
+        self.assertNotContains(response, 'Social proof')
+        self.assertNotContains(response, 'social-proof')
+
 
 class LandingViewPostTests(TestCase):
     def setUp(self):

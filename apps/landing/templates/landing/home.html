@@ -81,13 +81,16 @@
   </div>
 </section>
 
-{# Social proof: descomentar y rellenar cuando haya testimonios/logos reales.
+{% comment %}
+Social proof: descomentar y rellenar cuando haya testimonios/logos reales.
+Usar siempre la etiqueta comment para bloques: la sintaxis con almohadilla
+solo comenta una única línea y el resto se renderiza como HTML.
 <section class="social-proof">
   <div class="container">
     <h2>Confían en nosotros</h2>
   </div>
 </section>
-#}
+{% endcomment %}
 
 <section class="contact" id="contacto">
   <div class="container container-narrow">
@@ -122,7 +125,9 @@
         {{ form.message }}
         {{ form.message.errors }}
       </div>
-      <button type="submit" class="btn btn-primary" data-sending-text="{{ form_section.sending_text }}">{{ form_section.submit_text }}</button>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" data-sending-text="{{ form_section.sending_text }}">{{ form_section.submit_text }}</button>
+      </div>
     </form>
 
     {# Destino del mensaje de confirmación: servidor (sin JS) y fetch() (con JS). #}

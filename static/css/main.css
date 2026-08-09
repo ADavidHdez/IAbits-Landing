@@ -266,6 +266,11 @@ nav a:hover {
   margin-bottom: 1.25rem;
 }
 
+.form-actions {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
 .form-field label {
   display: block;
   font-weight: 500;
