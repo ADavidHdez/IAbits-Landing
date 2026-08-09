@@ -168,33 +168,128 @@ nav a:hover {
   background: var(--color-surface, #f6f8fb);
 }
 
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2.5rem;
+/* Las tarjetas entran desde su lado y pueden asomar fuera del contenedor
+   durante la animación; `clip` lo recorta sin crear scroll horizontal y, al no
+   ser un contenedor de scroll, no aplana el 3D de las tarjetas. */
+.services {
+  overflow-x: clip;
 }
 
-/* Las tarjetas usan dos capas para que los dos efectos 3D no compitan por la
-   propiedad `transform`: .card anima la entrada (lenta, una sola vez) y
-   .card-face la inclinación que sigue al puntero (rápida y continua). La
+.timeline {
+  position: relative;
+  list-style: none;
+  display: grid;
+  gap: 3rem;
+  margin-top: 3.5rem;
+}
+
+/* Hilo conductor: ::before es la guía gris completa y ::after el trazo azul,
+   cuya altura marca --timeline-progress desde static/js/timeline.js. */
+.timeline::before,
+.timeline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  translate: -50% 0;
+  border-radius: 1px;
+}
+
+.timeline::before {
+  bottom: 0;
+  background: var(--color-border, #e5e7eb);
+}
+
+.timeline::after {
+  height: var(--timeline-progress, 0%);
+  background: var(--color-primary, #1a56db);
+  transition: height 0.15s linear;
+}
+
+/* Tres columnas: tarjeta | nodo | hueco. Las pares invierten los extremos,
+   de ahí el zigzag. Todo en la misma fila para que el nodo quede centrado. */
+.timeline-item {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  column-gap: 2.5rem;
+}
+
+.timeline-item > * {
+  grid-row: 1;
+}
+
+.timeline-item > .card {
+  grid-column: 1;
+}
+
+.timeline-item:nth-child(even) > .card {
+  grid-column: 3;
+}
+
+.timeline-node {
+  grid-column: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.6rem;
+  border-radius: 50%;
+  background: var(--color-bg, #ffffff);
+  border: 2px solid var(--color-border, #e5e7eb);
+  border-color: color-mix(in srgb, var(--color-primary, #1a56db) 25%, transparent);
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* .is-revealed la deja reveal.js de forma permanente, aunque después retire
+   el atributo data-reveal: el nodo se queda marcado como alcanzado. */
+.timeline-item.is-revealed .timeline-node {
+  border-color: var(--color-primary, #1a56db);
+  box-shadow: 0 0 0 6px rgba(26, 86, 219, 0.12);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary, #1a56db) 12%, transparent);
+}
+
+/* La fila entra con un fundido corto (el nodo apenas se mueve del hilo) y la
+   tarjeta llega girando desde su lado. */
+.timeline-item[data-reveal].is-revealed {
+  animation: timeline-item-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.timeline-item.is-revealed > .card {
+  animation: timeline-card-left 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.timeline-item:nth-child(even).is-revealed > .card {
+  animation-name: timeline-card-right;
+}
+
+@keyframes timeline-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes timeline-card-left {
+  from {
+    transform: perspective(1000px) translate3d(-48px, 0, 0) rotateY(-12deg);
+  }
+}
+
+@keyframes timeline-card-right {
+  from {
+    transform: perspective(1000px) translate3d(48px, 0, 0) rotateY(12deg);
+  }
+}
+
+/* Dos capas para que los efectos 3D no compitan por `transform`: .card recibe
+   la entrada lateral y .card-face la inclinación que sigue al puntero. La
    `perspective` de .card da a cada tarjeta su propio punto de fuga. */
 .card {
   display: flex;
   perspective: 900px;
-}
-
-/* Las tarjetas de servicios sustituyen el fundido genérico por una entrada
-   girada en perspectiva; el resto de la página usa reveal-rise. */
-.card[data-reveal].is-revealed {
-  animation: card-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes card-rise {
-  from {
-    opacity: 0;
-    transform: perspective(1000px) translate3d(0, 2.5rem, 0) rotateX(12deg);
-  }
 }
 
 .card-face {
@@ -216,15 +311,7 @@ nav a:hover {
     border-color 0.25s ease;
 }
 
-/* Profundidad real: icono y título flotan por delante del cuerpo de la tarjeta. */
-.card-icon {
-  font-size: 2.1rem;
-  display: block;
-  margin-bottom: 0.75rem;
-  transform: translateZ(var(--depth-icon, 0px));
-  transition: transform 0.25s ease-out;
-}
-
+/* Profundidad real: el texto flota por delante del cuerpo de la tarjeta. */
 .card h3 {
   font-size: 1.15rem;
   margin-bottom: 0.5rem;
@@ -235,14 +322,16 @@ nav a:hover {
 .card p {
   color: var(--color-muted, #6b7280);
   font-size: 0.95rem;
+  transform: translateZ(var(--depth-text, 0px));
+  transition: transform 0.25s ease-out;
 }
 
 /* La inclinación solo tiene sentido con ratón; en táctil la sustituye
    .is-active, que cards-3d.js asigna a la tarjeta centrada en pantalla. */
 @media (hover: hover) and (pointer: fine) {
   .card:hover {
-    --depth-icon: 34px;
-    --depth-title: 18px;
+    --depth-title: 26px;
+    --depth-text: 12px;
   }
 
   .card:hover .card-face {
@@ -257,8 +346,8 @@ nav a:hover {
 }
 
 .card.is-active {
-  --depth-icon: 22px;
-  --depth-title: 12px;
+  --depth-title: 16px;
+  --depth-text: 8px;
 }
 
 .card.is-active .card-face {
@@ -521,9 +610,20 @@ nav a:hover {
     transition: box-shadow 0.25s ease, border-color 0.25s ease;
   }
 
-  .card-icon,
-  .card h3 {
+  .card h3,
+  .card p {
     transform: none;
+    transition: none;
+  }
+
+  /* El hilo se muestra completo en lugar de trazarse con el scroll. */
+  .timeline-item.is-revealed > .card {
+    animation: none;
+    transform: none;
+  }
+
+  .timeline::after {
+    height: 100%;
     transition: none;
   }
 }
@@ -536,6 +636,42 @@ nav a:hover {
   text-align: center;
   color: var(--color-muted, #6b7280);
   font-size: 0.9rem;
+}
+
+/* --- Timeline en pantallas estrechas --- */
+
+/* El zigzag deja las tarjetas por debajo de 300 px: se pasa a columna única
+   con el hilo pegado al margen izquierdo, alineado con el centro del nodo. */
+@media (max-width: 768px) {
+  .timeline {
+    gap: 2.25rem;
+  }
+
+  .timeline::before,
+  .timeline::after {
+    left: 1.75rem;
+  }
+
+  .timeline-item {
+    grid-template-columns: 3.5rem 1fr;
+    column-gap: 1.25rem;
+    align-items: start;
+  }
+
+  .timeline-node {
+    grid-column: 1;
+  }
+
+  .timeline-item > .card,
+  .timeline-item:nth-child(even) > .card {
+    grid-column: 2;
+  }
+
+  /* Sin zigzag, todas las tarjetas entran desde el mismo lado que el hilo. */
+  .timeline-item.is-revealed > .card,
+  .timeline-item:nth-child(even).is-revealed > .card {
+    animation-name: timeline-card-left;
+  }
 }
 
 /* --- Móvil --- */

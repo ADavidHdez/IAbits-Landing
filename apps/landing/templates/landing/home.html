@@ -23,9 +23,14 @@
 </style>
 <noscript>
   <style>
-    /* Sin JS no hay observador que revele los bloques: se muestran ya visibles. */
+    /* Sin JS no hay observador que revele los bloques ni quien calcule el
+       avance del hilo: se muestra todo ya visible y la línea completa. */
     [data-reveal] {
       opacity: 1;
+    }
+
+    .timeline::after {
+      height: 100%;
     }
   </style>
 </noscript>
@@ -47,17 +52,19 @@
   <div class="container">
     <h2>{{ services_section.title }}</h2>
     <p class="section-sub">{{ services_section.subtitle }}</p>
-    <div class="cards-grid" data-reveal-group>
+    <ul class="timeline" data-timeline>
       {% for service in services %}
-      <article class="card" data-card-3d data-reveal>
-        <div class="card-face">
-          <span class="card-icon" aria-hidden="true">{{ service.icon }}</span>
-          <h3>{{ service.title }}</h3>
-          <p>{{ service.description }}</p>
-        </div>
-      </article>
+      <li class="timeline-item" data-reveal>
+        <span class="timeline-node" aria-hidden="true">{{ service.icon }}</span>
+        <article class="card" data-card-3d>
+          <div class="card-face">
+            <h3>{{ service.title }}</h3>
+            <p>{{ service.description }}</p>
+          </div>
+        </article>
+      </li>
       {% endfor %}
-    </div>
+    </ul>
   </div>
 </section>
 
@@ -156,6 +163,7 @@ solo comenta una única línea y el resto se renderiza como HTML.
 
 {% block extra_js %}
 <script src="{% static 'js/reveal.js' %}" defer></script>
+<script src="{% static 'js/timeline.js' %}" defer></script>
 <script src="{% static 'js/cards-3d.js' %}" defer></script>
 <script src="{% static 'js/confetti.js' %}" defer></script>
 <script src="{% static 'js/lead-form.js' %}" defer></script>
