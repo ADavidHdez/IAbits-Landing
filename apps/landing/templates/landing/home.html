@@ -32,6 +32,10 @@
     .timeline::after {
       height: 100%;
     }
+
+    .timeline-icon {
+      opacity: 1;
+    }
   </style>
 </noscript>
 {% endblock %}
@@ -54,8 +58,9 @@
     <p class="section-sub">{{ services_section.subtitle }}</p>
     <ul class="timeline" data-timeline>
       {% for service in services %}
-      <li class="timeline-item" data-reveal>
-        <span class="timeline-node" aria-hidden="true">{{ service.icon }}</span>
+      <li class="timeline-item" data-reveal data-timeline-item>
+        <span class="timeline-node" aria-hidden="true"></span>
+        <span class="timeline-icon" aria-hidden="true" data-timeline-icon>{{ service.icon }}</span>
         <article class="card" data-card-3d>
           <div class="card-face">
             <h3>{{ service.title }}</h3>

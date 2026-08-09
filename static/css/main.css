@@ -207,7 +207,7 @@ nav a:hover {
   transition: height 0.15s linear;
 }
 
-/* Tres columnas: tarjeta | nodo | hueco. Las pares invierten los extremos,
+/* Tres columnas: tarjeta | nodo | icono. Las pares intercambian los extremos,
    de ahí el zigzag. Todo en la misma fila para que el nodo quede centrado. */
 .timeline-item {
   display: grid;
@@ -224,31 +224,69 @@ nav a:hover {
   grid-column: 1;
 }
 
+.timeline-item > .timeline-icon {
+  grid-column: 3;
+}
+
 .timeline-item:nth-child(even) > .card {
   grid-column: 3;
 }
 
+.timeline-item:nth-child(even) > .timeline-icon {
+  grid-column: 1;
+}
+
+/* El punto tapa el hilo con su propio fondo, por eso no es transparente. */
 .timeline-node {
   grid-column: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.5rem;
-  height: 3.5rem;
-  font-size: 1.6rem;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: var(--color-bg, #ffffff);
   border: 2px solid var(--color-border, #e5e7eb);
   border-color: color-mix(in srgb, var(--color-primary, #1a56db) 25%, transparent);
-  transition: border-color 0.35s ease, box-shadow 0.35s ease;
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
-/* .is-revealed la deja reveal.js de forma permanente, aunque después retire
-   el atributo data-reveal: el nodo se queda marcado como alcanzado. */
-.timeline-item.is-revealed .timeline-node {
+.timeline-icon {
+  justify-self: center;
+  font-size: 4rem;
+  line-height: 1;
+  opacity: 0;
+}
+
+/* .is-lit la asigna static/js/timeline.js cuando el trazo azul alcanza la
+   altura del icono, y no se retira: el recorrido queda marcado. */
+.timeline-item.is-lit .timeline-node {
+  background: var(--color-primary, #1a56db);
   border-color: var(--color-primary, #1a56db);
   box-shadow: 0 0 0 6px rgba(26, 86, 219, 0.12);
   box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary, #1a56db) 12%, transparent);
+}
+
+.timeline-item.is-lit .timeline-icon {
+  animation: icon-pop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes icon-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  75% {
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* La fila entra con un fundido corto (el nodo apenas se mueve del hilo) y la
@@ -616,7 +654,8 @@ nav a:hover {
     transition: none;
   }
 
-  /* El hilo se muestra completo en lugar de trazarse con el scroll. */
+  /* El hilo se muestra completo en lugar de trazarse con el scroll, y los
+     iconos aparecen sin rebote. */
   .timeline-item.is-revealed > .card {
     animation: none;
     transform: none;
@@ -625,6 +664,13 @@ nav a:hover {
   .timeline::after {
     height: 100%;
     transition: none;
+  }
+
+  .timeline-icon,
+  .timeline-item.is-lit .timeline-icon {
+    opacity: 1;
+    transform: none;
+    animation: none;
   }
 }
 
@@ -658,8 +704,23 @@ nav a:hover {
     align-items: start;
   }
 
+  /* Sin lado contrario disponible, el icono vuelve a hacer de nodo y el punto
+     sobra. El fondo circular es lo que impide que el hilo lo atraviese. */
   .timeline-node {
+    display: none;
+  }
+
+  .timeline-item > .timeline-icon,
+  .timeline-item:nth-child(even) > .timeline-icon {
     grid-column: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 2rem;
+    border-radius: 50%;
+    background: var(--color-bg, #ffffff);
   }
 
   .timeline-item > .card,
