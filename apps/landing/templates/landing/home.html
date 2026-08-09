@@ -21,6 +21,15 @@
     --max-width: {{ theme.max_width }};
   }
 </style>
+<noscript>
+  <style>
+    /* Sin JS no hay observador que revele las tarjetas: se muestran ya visibles. */
+    .card {
+      opacity: 1;
+      transform: none;
+    }
+  </style>
+</noscript>
 {% endblock %}
 
 {# Los mensajes se muestran junto al formulario, no en la cabecera. #}
@@ -41,10 +50,12 @@
     <p class="section-sub">{{ services_section.subtitle }}</p>
     <div class="cards-grid">
       {% for service in services %}
-      <article class="card">
-        <span class="card-icon" aria-hidden="true">{{ service.icon }}</span>
-        <h3>{{ service.title }}</h3>
-        <p>{{ service.description }}</p>
+      <article class="card" data-card-3d>
+        <div class="card-face">
+          <span class="card-icon" aria-hidden="true">{{ service.icon }}</span>
+          <h3>{{ service.title }}</h3>
+          <p>{{ service.description }}</p>
+        </div>
       </article>
       {% endfor %}
     </div>
@@ -145,6 +156,7 @@ solo comenta una única línea y el resto se renderiza como HTML.
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/cards-3d.js' %}" defer></script>
 <script src="{% static 'js/confetti.js' %}" defer></script>
 <script src="{% static 'js/lead-form.js' %}" defer></script>
 {% endblock %}

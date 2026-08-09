@@ -139,27 +139,106 @@ nav a:hover {
   margin-top: 2.5rem;
 }
 
+/* Las tarjetas usan dos capas para que los dos efectos 3D no compitan por la
+   propiedad `transform`: .card anima la entrada (lenta, una sola vez) y
+   .card-face la inclinación que sigue al puntero (rápida y continua). La
+   `perspective` de .card da a cada tarjeta su propio punto de fuga. */
 .card {
-  background: var(--color-bg, #ffffff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: var(--radius, 12px);
-  padding: 1.75rem;
+  display: flex;
+  perspective: 900px;
+  opacity: 0;
+  transform: perspective(1000px) translate3d(0, 2.5rem, 0) rotateX(12deg);
+  transition:
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.7s ease;
 }
 
+/* La añade static/js/cards-3d.js cuando la tarjeta entra en pantalla. */
+.card.is-visible {
+  opacity: 1;
+  transform: perspective(1000px) translate3d(0, 0, 0) rotateX(0deg);
+}
+
+.card:nth-child(2) { transition-delay: 80ms; }
+.card:nth-child(3) { transition-delay: 160ms; }
+.card:nth-child(4) { transition-delay: 240ms; }
+.card:nth-child(5) { transition-delay: 320ms; }
+.card:nth-child(6) { transition-delay: 400ms; }
+
+.card-face {
+  flex: 1;
+  padding: 1.75rem;
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-color: color-mix(in srgb, var(--color-primary, #1a56db) 18%, transparent);
+  border-radius: var(--radius, 12px);
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.05),
+    0 10px 24px -18px rgba(17, 24, 39, 0.4);
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition:
+    transform 0.18s ease-out,
+    translate 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+/* Profundidad real: icono y título flotan por delante del cuerpo de la tarjeta. */
 .card-icon {
-  font-size: 1.75rem;
+  font-size: 2.1rem;
   display: block;
   margin-bottom: 0.75rem;
+  transform: translateZ(var(--depth-icon, 0px));
+  transition: transform 0.25s ease-out;
 }
 
 .card h3 {
   font-size: 1.15rem;
   margin-bottom: 0.5rem;
+  transform: translateZ(var(--depth-title, 0px));
+  transition: transform 0.25s ease-out;
 }
 
 .card p {
   color: var(--color-muted, #6b7280);
   font-size: 0.95rem;
+}
+
+/* La inclinación solo tiene sentido con ratón; en táctil la sustituye
+   .is-active, que cards-3d.js asigna a la tarjeta centrada en pantalla. */
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    --depth-icon: 34px;
+    --depth-title: 18px;
+  }
+
+  .card:hover .card-face {
+    border-color: var(--color-primary, #1a56db);
+    box-shadow:
+      0 1px 2px rgba(17, 24, 39, 0.06),
+      0 26px 48px -26px rgba(26, 86, 219, 0.55);
+    box-shadow:
+      0 1px 2px rgba(17, 24, 39, 0.06),
+      0 26px 48px -26px color-mix(in srgb, var(--color-primary, #1a56db) 55%, transparent);
+  }
+}
+
+.card.is-active {
+  --depth-icon: 22px;
+  --depth-title: 12px;
+}
+
+.card.is-active .card-face {
+  --tilt-x: -4deg;
+  translate: 0 -6px;
+  border-color: color-mix(in srgb, var(--color-primary, #1a56db) 45%, transparent);
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.06),
+    0 22px 40px -26px rgba(26, 86, 219, 0.5);
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.06),
+    0 22px 40px -26px color-mix(in srgb, var(--color-primary, #1a56db) 50%, transparent);
 }
 
 /* --- Value props --- */
@@ -393,6 +472,27 @@ nav a:hover {
   .prop:hover {
     translate: none;
     animation: none;
+  }
+
+  /* Las tarjetas de servicios se muestran ya colocadas, sin entrada ni 3D. */
+  .card,
+  .card.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .card-face,
+  .card.is-active .card-face {
+    transform: none;
+    translate: none;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  .card-icon,
+  .card h3 {
+    transform: none;
+    transition: none;
   }
 }
 
