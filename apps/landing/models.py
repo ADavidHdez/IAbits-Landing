@@ -13,6 +13,10 @@ class Lead(models.Model):
     ip_address = models.GenericIPAddressField('IP de origen', null=True, blank=True)
     user_agent = models.CharField('user agent', max_length=255, blank=True)
     created_at = models.DateTimeField('fecha de creación', auto_now_add=True)
+    webhook_delivered_at = models.DateTimeField(
+        'enviado a n8n', null=True, blank=True,
+        help_text='Momento en que n8n confirmó la recepción del lead.',
+    )
 
     class Meta:
         ordering = ['-created_at']

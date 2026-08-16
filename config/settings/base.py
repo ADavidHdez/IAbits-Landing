@@ -110,4 +110,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LEAD_THROTTLE_MAX = config('LEAD_THROTTLE_MAX', default=5, cast=int)
 LEAD_THROTTLE_WINDOW_MINUTES = config('LEAD_THROTTLE_WINDOW_MINUTES', default=60, cast=int)
 
+# Webhook de n8n que recibe cada lead. Vacío = desactivado (el lead solo se
+# guarda en la BD). El token viaja en la cabecera X-Webhook-Token para que n8n
+# pueda rechazar peticiones que no vengan de esta web.
+N8N_WEBHOOK_URL = config('N8N_WEBHOOK_URL', default='')
+N8N_WEBHOOK_TOKEN = config('N8N_WEBHOOK_TOKEN', default='')
+N8N_WEBHOOK_TIMEOUT = config('N8N_WEBHOOK_TIMEOUT', default=10, cast=int)
+N8N_WEBHOOK_SOURCE = config('N8N_WEBHOOK_SOURCE', default='landing')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -3,13 +3,14 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import CreateView
 
-from . import content
+from . import content, webhooks
 from .forms import LeadForm
 from .models import Lead
 
@@ -64,6 +65,9 @@ class LandingView(CreateView):
         form.instance.ip_address = get_client_ip(self.request)
         form.instance.user_agent = self.request.META.get('HTTP_USER_AGENT', '')[:255]
         response = super().form_valid(form)
+        # on_commit: el hilo del webhook marca el lead como entregado desde otra
+        # conexión, así que la fila tiene que estar ya confirmada en la BD.
+        transaction.on_commit(lambda: webhooks.send_lead_async(self.object))
         if self.is_ajax:
             return JsonResponse({
                 'ok': True,
