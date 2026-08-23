@@ -1,7 +1,24 @@
-# Webhook de leads → n8n
+# Integraciones — Webhook de leads → n8n
 
-`lead-webhook.workflow.json` es el workflow listo para importar en n8n
-(**Workflows → ⋯ → Import from File**).
+Cada lead que entra por el formulario se guarda en la BD y se reenvía a n8n, que lo
+registra en Airtable y avisa por Telegram.
+
+Código: [`apps/landing/webhooks.py`](../apps/landing/webhooks.py) ·
+Workflow: [`n8n/lead-webhook.workflow.json`](../n8n/lead-webhook.workflow.json)
+(importable desde **Workflows → ⋯ → Import from File**).
+
+```
+Django ──POST JSON──► [Webhook lead] ──► [¿Token válido?] ──sí──► [Normalizar lead]
+                                                │                          │
+                                                no                         ▼
+                                                ▼                  [Crear en Airtable]
+                                          [Responder 401]                  │
+                                                                           ▼
+                                                                  [Notificar Telegram]
+                                                                           │
+                                                                           ▼
+                                                                    [Responder 200]
+```
 
 ## Payload que envía Django
 
@@ -74,3 +91,23 @@ El lead se guarda **siempre** en la base de datos; el envío a n8n ocurre despu�
 en un hilo aparte, para que el visitante nunca espere. Si n8n falla, el error se
 registra en el log y el lead queda en el admin con la columna *enviado a n8n* en
 rojo: se puede reintentar seleccionándolo y usando la acción **Reenviar a n8n**.
+
+Con `N8N_WEBHOOK_URL` vacío la integración queda desactivada por completo y el lead
+solo se guarda en la BD — es el comportamiento por defecto en desarrollo y en los tests.
+
+## Red interna vs. pública (Easypanel)
+
+Si n8n y la web vivieran en el **mismo proyecto** de Easypanel, podrían hablarse por la
+red privada de Docker: `http://<nombre-servicio-n8n>:5678/webhook/lead-landing`.
+
+En esta instalación están en **proyectos distintos del mismo VPS**, y cada proyecto tiene
+su red Docker aislada, así que se usa la URL pública HTTPS. El tráfico resuelve a la IP
+del propio servidor y no llega a salir a internet de verdad; va cifrado y protegido por
+el token. Conectar ambas redes a mano (`docker network connect`) es posible pero se
+pierde en cada redeploy de n8n, así que se descartó.
+
+## Si cambias el payload
+
+`build_payload()` en `webhooks.py` define los nombres de los campos. Si los cambias,
+hay que actualizar también el workflow de n8n (nodo *Normalizar lead*) y el test
+`test_posts_json_payload_with_token_header`. Los tres van juntos.

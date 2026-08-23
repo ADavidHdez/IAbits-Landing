@@ -94,8 +94,13 @@
     <ol class="steps-grid" data-reveal-group>
       {% for step in steps %}
       <li class="step" data-reveal>
-        <span class="step-number">{{ step.number }}</span>
-        <h3>{{ step.title }}</h3>
+        <span class="step-number" aria-hidden="true">
+          <svg class="step-digit" viewBox="0 0 100 100"
+               preserveAspectRatio="xMaxYMid meet" focusable="false">
+            <text x="100" y="102" text-anchor="end">{{ step.number }}</text>
+          </svg>
+        </span>
+        <h3><span class="visually-hidden">Paso {{ step.number }}. </span>{{ step.title }}</h3>
         <p>{{ step.text }}</p>
       </li>
       {% endfor %}

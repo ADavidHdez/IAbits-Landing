@@ -57,6 +57,17 @@ a {
   color: var(--color-primary, #1a56db);
 }
 
+/* Visible solo para lectores de pantalla. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* --- Aparición al hacer scroll --- */
 
 /* static/js/reveal.js añade .is-revealed al entrar el elemento en pantalla y,
@@ -524,32 +535,110 @@ nav a:hover {
   background: var(--color-surface, #f6f8fb);
 }
 
+/* Pasos apilados: el padding izquierdo es el carril por el que sale el haz,
+   que necesita tanto ancho como alto tiene la tarjeta (el dígito la iguala). */
 .steps-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: 1fr;
+  row-gap: 1.5rem;
   margin-top: 2.5rem;
+  margin-inline: auto;
+  max-width: 44rem;
+  padding-left: 11.5rem;
   list-style: none;
 }
 
+/* La tarjeta pinta su superficie en ::after para que quede POR ENCIMA del haz:
+   el número y su difuminado nacen debajo del cuadro y se escapan hacia fuera. */
 .step {
-  background: var(--color-bg, #ffffff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: var(--radius, 12px);
+  position: relative;
   padding: 1.75rem;
 }
 
+.step::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius, 12px);
+}
+
+.step h3,
+.step p {
+  position: relative;
+  z-index: 1;
+}
+
 .step-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: var(--color-primary, #1a56db);
-  color: #ffffff;
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  left: -10.75rem;
+  width: 12rem;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* El haz: arranca ya atenuado en su origen (dentro del cuadro, tapado por
+   ::after) y se apaga en línea recta hacia la izquierda. Se desborda por
+   arriba, abajo y por la izquierda para darle aire al blur, y el clip-path
+   recorta después el derrame vertical: ni un píxel de haz fuera de la altura
+   del cuadro. Hacia la izquierda no se recorta, ahí es donde tiene que
+   difuminarse. */
+.step-number::before {
+  content: '';
+  position: absolute;
+  inset: -1.5rem 0 -1.5rem -1.5rem;
+  clip-path: inset(1.5rem 0);
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--color-primary, #1a56db) 42%, transparent) 0%,
+    color-mix(in srgb, var(--color-primary, #1a56db) 26%, transparent) 20%,
+    color-mix(in srgb, var(--color-primary, #1a56db) 12%, transparent) 48%,
+    color-mix(in srgb, var(--color-primary, #1a56db) 4%, transparent) 74%,
+    transparent 100%
+  );
+  filter: blur(14px);
+}
+
+/* El "cuello": una elipse achatada pegada al borde del cuadro, más densa y
+   menos alta que el haz. Da la sensación de materia estirándose al separarse,
+   como si el número se estuviera despegando de la tarjeta. */
+.step-number::after {
+  content: '';
+  position: absolute;
+  inset: -1.5rem 0;
+  clip-path: inset(1.5rem 0);
+  background: radial-gradient(
+    130% 58% at 100% 50%,
+    color-mix(in srgb, var(--color-primary, #1a56db) 58%, transparent) 0%,
+    color-mix(in srgb, var(--color-primary, #1a56db) 30%, transparent) 42%,
+    transparent 72%
+  );
+  filter: blur(10px);
+}
+
+/* El SVG escala con la altura de la banda: el dígito la desborda un pelín por
+   arriba y por abajo (font-size > viewBox) y se alinea por su derecha, medio
+   palmo por debajo de la tarjeta. Al ir del color de la sección, el haz parece
+   recortado a su alrededor. */
+.step-digit {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.step-digit text {
+  fill: var(--color-surface, #f6f8fb);
+  font-family: inherit;
+  font-size: 146px;
   font-weight: 700;
-  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
 }
 
 .step h3 {
@@ -560,6 +649,21 @@ nav a:hover {
 .step p {
   color: var(--color-muted, #6b7280);
   font-size: 0.95rem;
+}
+
+/* Al pasar el ratón se aparta la tarjeta —superficie y texto— hacia la
+   derecha y deja al descubierto el trozo de dígito que tenía tapado. El
+   número y su haz no se mueven: son el punto fijo del gesto. */
+.step::after,
+.step h3,
+.step p {
+  transition: translate 0.3s ease;
+}
+
+.step:hover::after,
+.step:hover h3,
+.step:hover p {
+  translate: 0.9rem;
 }
 
 /* --- Formulario --- */
@@ -710,6 +814,13 @@ nav a:hover {
     animation: none;
   }
 
+  /* Los pasos no se apartan al pasar el ratón. */
+  .step:hover::after,
+  .step:hover h3,
+  .step:hover p {
+    translate: none;
+  }
+
   /* Todo aparece ya colocado: ni entrada al hacer scroll ni 3D. */
   [data-reveal],
   [data-reveal].is-revealed {
@@ -835,5 +946,16 @@ nav a:hover {
 
   .hero-sub {
     font-size: 1.05rem;
+  }
+
+  /* Sin ancho para un carril de 12rem: el haz se acorta y el dígito queda
+     limitado por el ancho de la banda, no por la altura de la tarjeta. */
+  .steps-grid {
+    padding-left: 5.5rem;
+  }
+
+  .step-number {
+    left: -5rem;
+    width: 6rem;
   }
 }

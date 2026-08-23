@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git branch *)",
+      "Bash(git show *)",
+      "Bash(python manage.py test *)",
+      "Bash(python manage.py check *)",
+      "Bash(python manage.py makemigrations --check *)",
+      "Bash(.venv/Scripts/python.exe manage.py test *)",
+      "Bash(.venv/Scripts/python.exe manage.py check *)",
+      "Bash(.venv/Scripts/python.exe manage.py makemigrations --check *)"
+    ]
+  }
+}

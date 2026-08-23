@@ -15,3 +15,7 @@ htmlcov/
 .vscode/
 .idea/
 notas-aprendizaje.md
+
+# Ajustes personales de Claude Code. El resto de .claude/ (comandos, skills,
+# settings.json) sí se comparte.
+.claude/settings.local.json
