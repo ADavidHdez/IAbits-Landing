@@ -529,6 +529,21 @@ nav a:hover {
   font-size: 0.95rem;
 }
 
+/* --- Llamada a la acción intermedia --- */
+
+/* Cierra el bloque de ventajas, así que va pegada a él: sin padding arriba y
+   con el de una sección normal abajo. */
+.mid-cta {
+  padding-top: 0;
+  text-align: center;
+}
+
+/* Un 2 % por encima del botón estándar: la misma pieza, con algo más de peso
+   por ser el único elemento de la sección. */
+.mid-cta .btn {
+  scale: 1.02;
+}
+
 /* --- Pasos --- */
 
 .steps {
@@ -542,17 +557,22 @@ nav a:hover {
   grid-template-columns: 1fr;
   row-gap: 1.5rem;
   margin-top: 2.5rem;
-  margin-inline: auto;
-  max-width: 44rem;
   padding-left: 11.5rem;
   list-style: none;
 }
 
 /* La tarjeta pinta su superficie en ::after para que quede POR ENCIMA del haz:
    el número y su difuminado nacen debajo del cuadro y se escapan hacia fuera. */
+/* Las tarjetas ocupan todo el ancho disponible; el min-height evita que, al
+   caber el texto en una línea, se queden tan bajas que el dígito (que iguala
+   su altura) pierda presencia. */
 .step {
   position: relative;
-  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 8.5rem;
+  padding: 1.75rem 2.25rem;
 }
 
 .step::after {

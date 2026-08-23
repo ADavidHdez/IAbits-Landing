@@ -130,6 +130,13 @@ VALUE_PROPS = [
     },
 ]
 
+# Llamada a la acción intermedia: recoge al visitante convencido por las
+# ventajas antes de que siga leyendo cómo trabajamos.
+MID_CTA = {
+    'cta_text': 'Quiero mi diagnóstico',
+    'cta_anchor': '#contacto',
+}
+
 STEPS_SECTION = {
     'title': 'Cómo trabajamos',
     'subtitle': 'De la primera llamada a la automatización funcionando.',
@@ -200,6 +207,7 @@ def get_landing_context():
         'services': SERVICES,
         'value_props_section': VALUE_PROPS_SECTION,
         'value_props': VALUE_PROPS,
+        'mid_cta': MID_CTA,
         'steps_section': STEPS_SECTION,
         'steps': STEPS,
         'form_section': FORM_SECTION,
