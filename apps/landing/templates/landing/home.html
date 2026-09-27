@@ -175,6 +175,8 @@ solo comenta una única línea y el resto se renderiza como HTML.
     <p>{{ footer.text }}{% if contact.email %} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}{% if contact.phone %} · {{ contact.phone }}{% endif %}</p>
   </div>
 </footer>
+
+{% if chat_enabled %}{% include 'partials/chat-widget.html' %}{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -183,4 +185,5 @@ solo comenta una única línea y el resto se renderiza como HTML.
 <script src="{% static 'js/cards-3d.js' %}" defer></script>
 <script src="{% static 'js/confetti.js' %}" defer></script>
 <script src="{% static 'js/lead-form.js' %}" defer></script>
+{% if chat_enabled %}<script src="{% static 'js/chat.js' %}" defer></script>{% endif %}
 {% endblock %}

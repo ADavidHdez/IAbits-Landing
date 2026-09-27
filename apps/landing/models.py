@@ -25,3 +25,48 @@ class Lead(models.Model):
 
     def __str__(self):
         return f'{self.name} <{self.email}>'
+
+
+class ChatConversation(models.Model):
+    """Una conversación del chat de la landing con el agente de IA."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ip_address = models.GenericIPAddressField('IP de origen', null=True, blank=True)
+    user_agent = models.CharField('user agent', max_length=255, blank=True)
+    created_at = models.DateTimeField('inicio', auto_now_add=True)
+    updated_at = models.DateTimeField('último mensaje', auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = 'conversación del chat'
+        verbose_name_plural = 'conversaciones del chat'
+
+    def __str__(self):
+        return f'Conversación {str(self.id)[:8]}'
+
+
+class ChatMessage(models.Model):
+    class Role(models.TextChoices):
+        USER = 'user', 'visitante'
+        ASSISTANT = 'assistant', 'asistente'
+
+    conversation = models.ForeignKey(
+        ChatConversation, on_delete=models.CASCADE, related_name='messages',
+        verbose_name='conversación',
+    )
+    role = models.CharField('autor', max_length=10, choices=Role.choices)
+    text = models.TextField('texto')
+    # IP de quien envió este mensaje, no la de la conversación: el throttle
+    # cuenta por mensaje para que reutilizar una conversación abierta desde
+    # otra IP no sirva para saltárselo.
+    ip_address = models.GenericIPAddressField('IP de origen', null=True, blank=True)
+    created_at = models.DateTimeField('fecha', auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at', 'id']
+        indexes = [models.Index(fields=['ip_address', 'created_at'])]
+        verbose_name = 'mensaje del chat'
+        verbose_name_plural = 'mensajes del chat'
+
+    def __str__(self):
+        return f'{self.get_role_display()}: {self.text[:60]}'

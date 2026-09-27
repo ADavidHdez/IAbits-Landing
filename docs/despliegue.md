@@ -7,7 +7,7 @@
 ## Checklist antes de desplegar
 
 ```bash
-python manage.py test apps                 # 47 tests en verde
+python manage.py test apps                 # 67 tests en verde
 python manage.py makemigrations --check    # ¿falta alguna migración por generar?
 python manage.py check --deploy            # avisos de seguridad de producción
 git status                                 # nada sensible sin querer
@@ -65,6 +65,8 @@ En producción **no existe `.env`**: se configuran en Easypanel → tu servicio 
 | `ADMIN_URL` | Ruta no adivinable del admin, terminada en `/` |
 | `LEAD_THROTTLE_MAX` / `LEAD_THROTTLE_WINDOW_MINUTES` | Límite de envíos por IP |
 | `N8N_WEBHOOK_URL` / `N8N_WEBHOOK_TOKEN` | Integración n8n (ver [integraciones.md](integraciones.md)) |
+| `N8N_CHAT_WEBHOOK_URL` / `N8N_CHAT_TIMEOUT` | Chat con el agente de IA; vacío = no se muestra (ver [integraciones.md](integraciones.md#chat-con-el-agente-de-ia)) |
+| `CHAT_THROTTLE_MAX` / `CHAT_THROTTLE_WINDOW_MINUTES` | Límite de mensajes del chat por IP |
 
 ---
 

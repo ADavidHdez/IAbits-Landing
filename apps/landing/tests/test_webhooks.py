@@ -103,6 +103,16 @@ class WebhookDisabledTests(TestCase):
     def test_non_http_scheme_is_rejected(self):
         self.assertFalse(webhooks.is_enabled())
 
+    @override_settings(N8N_WEBHOOK_URL='http://n8n.example/webhook/lead-landing')
+    def test_plain_http_to_remote_host_is_rejected(self):
+        """El token y los datos del lead no pueden viajar sin cifrar."""
+        self.assertFalse(webhooks.is_enabled())
+
+    @override_settings(N8N_WEBHOOK_URL='http://localhost:5678/webhook/lead-landing')
+    def test_plain_http_to_localhost_is_allowed(self):
+        """Contra un n8n local no sale nada a la red: se permite para desarrollo."""
+        self.assertTrue(webhooks.is_enabled())
+
 
 @override_settings(**WEBHOOK_SETTINGS)
 class LandingViewWebhookTests(TestCase):

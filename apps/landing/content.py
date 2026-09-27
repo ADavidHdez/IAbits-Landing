@@ -183,6 +183,35 @@ FORM_SECTION = {
     ),
 }
 
+# Chat flotante con el asistente de IA (responde un agente de n8n). Solo se
+# muestra si N8N_CHAT_WEBHOOK_URL está configurada.
+CHAT = {
+    'title': 'IAbits Studio',
+    'subtitle': 'Asistente de IA · responde al momento',
+    'greeting': (
+        '¡Hola! 👋 Soy el asistente de IAbits. Cuéntame qué tarea te gustaría '
+        'quitarte de encima y te digo cómo podríamos automatizarla.'
+    ),
+    'placeholder': 'Escribe tu mensaje…',
+    'input_label': 'Tu mensaje',
+    'disclaimer': 'Respuestas generadas por IA.',
+    'typing_label': 'El asistente está escribiendo…',
+    'error_message': (
+        'Ahora mismo no puedo responder. Déjanos tus datos en el formulario y '
+        'te contactamos.'
+    ),
+    'throttle_message': (
+        'Has enviado muchos mensajes seguidos. Si prefieres, usa el formulario '
+        'y te contactamos.'
+    ),
+    'invalid_message': 'Escribe un mensaje de hasta 500 caracteres.',
+    'form_link_text': 'Ir al formulario',
+    'form_anchor': '#contacto',
+    'open_label': 'Abrir chat',
+    'close_label': 'Cerrar chat',
+    'send_label': 'Enviar mensaje',
+}
+
 CONTACT = {
     'email': 'iabits.studio@gmail.com',
     'phone': '',
@@ -211,6 +240,7 @@ def get_landing_context():
         'steps_section': STEPS_SECTION,
         'steps': STEPS,
         'form_section': FORM_SECTION,
+        'chat': CHAT,
         'contact': CONTACT,
         'footer': FOOTER,
     }

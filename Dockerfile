@@ -19,6 +19,8 @@ USER appuser
 EXPOSE 8000
 
 # check --deploy aborta el arranque si falta configuración crítica de producción.
+# --threads: cada mensaje del chat espera varios segundos la respuesta de n8n;
+# con hilos, esa espera no deja al resto de visitantes sin worker libre.
 CMD ["sh", "-c", "\
     python manage.py migrate --noinput && \
     python manage.py collectstatic --noinput && \
@@ -26,6 +28,7 @@ CMD ["sh", "-c", "\
     gunicorn config.wsgi:application \
       --bind 0.0.0.0:8000 \
       --workers 3 \
+      --threads 4 \
       --timeout 60 \
       --access-logfile - \
       --error-logfile - \

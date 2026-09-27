@@ -106,9 +106,26 @@ STORAGES = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Límite de envíos del formulario de leads por IP dentro de la ventana.
+# --- Cookies y cabeceras ---------------------------------------------------
+# En producción se les añade el flag Secure (ver production.py).
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SECURE_REFERRER_POLICY = 'same-origin'
+
+# --- Límites de uso --------------------------------------------------------
+# Proxies propios delante de gunicorn (Easypanel pone 1). Se usa para leer la
+# IP real del visitante sin fiarse de las cabeceras que envía el cliente;
+# ver apps/common.py.
+TRUSTED_PROXY_DEPTH = config('TRUSTED_PROXY_DEPTH', default=1, cast=int)
+
+# Envíos del formulario de leads por IP dentro de la ventana.
 LEAD_THROTTLE_MAX = config('LEAD_THROTTLE_MAX', default=5, cast=int)
 LEAD_THROTTLE_WINDOW_MINUTES = config('LEAD_THROTTLE_WINDOW_MINUTES', default=60, cast=int)
+
+# Intentos de login fallidos por IP antes de bloquear la ventana.
+LOGIN_THROTTLE_MAX = config('LOGIN_THROTTLE_MAX', default=5, cast=int)
+LOGIN_THROTTLE_WINDOW_MINUTES = config('LOGIN_THROTTLE_WINDOW_MINUTES', default=15, cast=int)
 
 # Webhook de n8n que recibe cada lead. Vacío = desactivado (el lead solo se
 # guarda en la BD). El token viaja en la cabecera X-Webhook-Token para que n8n
@@ -117,5 +134,17 @@ N8N_WEBHOOK_URL = config('N8N_WEBHOOK_URL', default='')
 N8N_WEBHOOK_TOKEN = config('N8N_WEBHOOK_TOKEN', default='')
 N8N_WEBHOOK_TIMEOUT = config('N8N_WEBHOOK_TIMEOUT', default=10, cast=int)
 N8N_WEBHOOK_SOURCE = config('N8N_WEBHOOK_SOURCE', default='landing')
+
+# Chat de la landing: cada mensaje se reenvía a un agente de IA en n8n y se
+# espera su respuesta. Vacío = el chat no se muestra. Usa el mismo
+# N8N_WEBHOOK_TOKEN. El timeout es mayor que el de leads porque el modelo tarda
+# unos segundos en escribir, y menor que el de gunicorn (60 s).
+N8N_CHAT_WEBHOOK_URL = config('N8N_CHAT_WEBHOOK_URL', default='')
+N8N_CHAT_TIMEOUT = config('N8N_CHAT_TIMEOUT', default=25, cast=int)
+
+# Mensajes del chat por IP dentro de la ventana: cada uno es una llamada de
+# pago al modelo de IA.
+CHAT_THROTTLE_MAX = config('CHAT_THROTTLE_MAX', default=20, cast=int)
+CHAT_THROTTLE_WINDOW_MINUTES = config('CHAT_THROTTLE_WINDOW_MINUTES', default=60, cast=int)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

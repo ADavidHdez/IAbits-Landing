@@ -1,3 +1,5 @@
 -r base.txt
-pytest-django>=4.8
+
+# Fábricas de objetos para los tests (apps/landing/tests/factories.py).
+# La suite se ejecuta con `python manage.py test apps`, no con pytest.
 factory-boy>=3.3

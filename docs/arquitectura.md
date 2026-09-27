@@ -35,10 +35,16 @@ Contiene todo lo relacionado con la página de ventas y la captación. Es donde 
 prácticamente el 100 % del trabajo.
 
 ### `apps/accounts`
-Solo existe para tener un `User` propio (`AbstractUser` + campo `bio`) definido **antes**
-de la primera migración — cambiar el modelo de usuario después es doloroso, así que se
-hizo desde el principio aunque hoy apenas se use. Da login/logout para el admin.
-No hay registro público a propósito: las únicas cuentas son de staff.
+Existe para tener un `User` propio (`AbstractUser` + campo `bio`) definido **antes** de la
+primera migración — cambiar el modelo de usuario después es doloroso, así que se hizo
+desde el principio. Da login/logout para el admin, con límite de intentos por IP
+(`LoginAttempt` + `ThrottledLoginView`). No hay registro público a propósito: las únicas
+cuentas son de staff.
+
+### `apps/common`
+**No es una app de Django** (no está en `INSTALLED_APPS`, no tiene modelos): es el paquete
+donde vive el código que usan al menos dos apps. Hoy solo `http.py:get_client_ip()`, que
+usan el throttle de leads y el de login.
 
 ---
 
@@ -82,8 +88,26 @@ coste es que un slug antiguo puede quedar huérfano — por eso el admin usa
    y un contador en memoria sería inútil (cada worker tendría el suyo).
 3. **CSRF** de Django, activo por defecto.
 
-La IP sale de `X-Forwarded-For` (la añade el proxy de Easypanel). Es fiable solo porque
-el puerto del contenedor no es alcanzable desde internet: la única entrada es el proxy.
+La IP la resuelve `apps/common/http.py:get_client_ip()`. Importa **cuál** de las entradas
+de `X-Forwarded-For` se coge: la cabecera crece por la derecha, cada proxy añade al final
+la IP de quien le habló, así que la **última** entrada es la única que el cliente no
+controla. Quedarse con la primera —como se hacía antes— permitía enviar
+`X-Forwarded-For: <ip inventada>` en cada POST y saltarse el throttle sin límite.
+
+`TRUSTED_PROXY_DEPTH` (por defecto 1, el proxy de Easypanel) dice cuántos proxies propios
+hay delante de gunicorn. El valor se valida con `ipaddress` antes de usarse, para que una
+cabecera con basura no acabe en la base de datos.
+
+### Fuerza bruta contra el login
+`/accounts/login/` es pública, así que `ThrottledLoginView` corta tras
+`LOGIN_THROTTLE_MAX` fallos por IP dentro de `LOGIN_THROTTLE_WINDOW_MINUTES` y responde
+429. Los fallos los registra la señal `user_login_failed` (`apps/accounts/apps.py`), que
+cubre también los intentos contra el admin; el bloqueo se aplica en la vista, que es la
+puerta pública. Al acertar la contraseña se borra el contador de esa IP.
+
+Los intentos viven en la tabla `LoginAttempt`, no en caché de proceso, por el mismo
+motivo que el throttle de leads: varios workers de gunicorn. Cada comprobación purga las
+filas caducadas, así que la tabla no crece sin control y no hace falta un cron.
 
 ### AJAX con degradación
 `lead-form.js` intercepta el submit y envía por `fetch` con la cabecera
@@ -157,8 +181,13 @@ Si renombras uno, busca el `.js` correspondiente antes.
 
 ## Tests
 
-`apps/landing/tests/` — 47 tests. Cubren modelo, formulario, vista (GET, POST clásico,
-POST AJAX), seguridad (CSRF, escapado XSS, admin protegido), throttle y webhook.
+67 tests repartidos en tres carpetas:
+
+| Carpeta | Qué cubre |
+|---|---|
+| `apps/landing/tests/` | Modelo, formulario, vista (GET, POST clásico, POST AJAX), CSRF, escapado XSS, admin protegido, throttle de leads y webhook |
+| `apps/accounts/tests/` | Modelos `User` y `LoginAttempt`, login/logout y throttle de login |
+| `apps/common/tests/` | `get_client_ip()`: proxies, cabeceras falsificadas, IPv6 |
 
 ```bash
 python manage.py test apps

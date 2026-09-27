@@ -979,3 +979,476 @@ nav a:hover {
     width: 6rem;
   }
 }
+
+/* --- Chat flotante (templates/partials/chat-widget.html, static/js/chat.js) --- */
+
+/* Todo el widget cuelga de la esquina inferior derecha. Queda por encima de
+   la página pero por debajo del confeti (z-index 9999). */
+.chat {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 900;
+}
+
+/* Entra con un pequeño rebote poco después que el hero y luego emite dos
+   ondas desde ::after para llamar la atención una sola vez, sin insistir. */
+.chat-launcher {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-primary, #1a56db);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 10px 24px -8px rgba(26, 86, 219, 0.6);
+  box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--color-primary, #1a56db) 60%, transparent);
+  transition:
+    background 0.2s ease,
+    translate 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease,
+    scale 0.2s ease;
+  /* `backwards` y no `both`: una animación que se queda aplicada al terminar
+     taparía las transiciones de opacity y scale del cierre en móvil. */
+  animation: chat-launcher-in 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) 0.6s backwards;
+}
+
+.chat-launcher::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary, #1a56db);
+  opacity: 0;
+  pointer-events: none;
+  animation: chat-launcher-wave 1.6s ease-out 1.4s 2;
+}
+
+.chat-launcher:hover {
+  background: var(--color-primary-dark, #1e429f);
+  translate: 0 -2px;
+}
+
+@keyframes chat-launcher-in {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+}
+
+@keyframes chat-launcher-wave {
+  from {
+    opacity: 0.6;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 1.7;
+  }
+}
+
+/* Los dos iconos ocupan la misma celda: al abrir, el bocadillo gira y se
+   desvanece mientras la ✕ entra girando desde el lado contrario. */
+.chat-launcher-icon {
+  grid-area: 1 / 1;
+  width: 1.6rem;
+  height: 1.6rem;
+  transition:
+    opacity 0.2s ease,
+    rotate 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    scale 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.chat-launcher-close {
+  opacity: 0;
+  rotate: -90deg;
+  scale: 0.6;
+}
+
+.chat.is-open .chat-launcher-open {
+  opacity: 0;
+  rotate: 90deg;
+  scale: 0.6;
+}
+
+.chat.is-open .chat-launcher-close {
+  opacity: 1;
+  rotate: 0deg;
+  scale: 1;
+}
+
+.chat-launcher:focus-visible,
+.chat-send:focus-visible {
+  outline: 2px solid var(--color-primary, #1a56db);
+  outline-offset: 3px;
+}
+
+/* Cerrado sigue en el DOM (para animar) pero `visibility` lo saca del foco y
+   de los lectores de pantalla. Al cerrar, la visibilidad cambia al final de
+   la transición; al abrir, al principio. */
+.chat-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 1rem);
+  display: flex;
+  flex-direction: column;
+  width: min(22.5rem, calc(100vw - 3rem));
+  height: min(32.5rem, calc(100vh - 8rem));
+  height: min(32.5rem, calc(100dvh - 8rem));
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: calc(var(--radius, 12px) * 1.5);
+  box-shadow:
+    0 2px 6px rgba(17, 24, 39, 0.06),
+    0 24px 60px -20px rgba(17, 24, 39, 0.35);
+  overflow: hidden;
+  transform-origin: bottom right;
+  opacity: 0;
+  scale: 0.92;
+  translate: 0 0.75rem;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    scale 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    translate 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.25s;
+}
+
+.chat.is-open .chat-panel {
+  opacity: 1;
+  scale: 1;
+  translate: 0 0;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.chat-panel:focus {
+  outline: none;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0.75rem 1rem 1.25rem;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary, #1a56db),
+    var(--color-primary-dark, #1e429f)
+  );
+  color: #ffffff;
+}
+
+.chat-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.chat-avatar svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.chat-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Anula el h2 de sección (2rem, centrado). */
+.chat-title {
+  font-size: 1rem;
+  text-align: left;
+  letter-spacing: -0.01em;
+}
+
+.chat-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+/* Punto de "en línea" con un latido suave. */
+.chat-status {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #ffffff;
+  animation: chat-status 2.4s ease-in-out infinite;
+}
+
+@keyframes chat-status {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.chat-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.chat-close:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Sobre la cabecera azul el anillo de foco tiene que ser blanco. */
+.chat-close:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 1px;
+}
+
+.chat-close svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.chat-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem 1rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--color-surface, #f6f8fb);
+}
+
+/* pre-line respeta los saltos de línea que escriba el agente. */
+.chat-bubble {
+  max-width: 85%;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.925rem;
+  line-height: 1.5;
+  border-radius: 1.1rem;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  animation: chat-bubble-in 0.25s ease-out backwards;
+}
+
+.chat-bubble-bot {
+  align-self: flex-start;
+  color: var(--color-text, #111827);
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-bottom-left-radius: 0.35rem;
+}
+
+.chat-bubble-user {
+  align-self: flex-end;
+  color: #ffffff;
+  background: var(--color-primary, #1a56db);
+  border-bottom-right-radius: 0.35rem;
+}
+
+/* Mismos tonos que el mensaje de error del formulario (.messages li.error). */
+.chat-bubble-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.chat-bubble-error a {
+  color: inherit;
+  font-weight: 600;
+}
+
+@keyframes chat-bubble-in {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+}
+
+.chat-typing {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.85rem 1rem;
+}
+
+.chat-typing-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--color-muted, #6b7280);
+  animation: chat-typing 1.2s ease-in-out infinite;
+}
+
+.chat-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.chat-typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes chat-typing {
+  0%, 60%, 100% {
+    opacity: 0.35;
+    translate: 0 0;
+  }
+  30% {
+    opacity: 1;
+    translate: 0 -4px;
+  }
+}
+
+.chat-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 0.35rem 0.5rem;
+  padding: 0.75rem 0.75rem 0.5rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-bg, #ffffff);
+}
+
+/* 1rem de letra como mínimo: por debajo, iOS hace zoom al enfocar el campo. */
+.chat-form textarea {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  max-height: 7.5rem;
+  padding: 0.6rem 1rem;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text, #111827);
+  background: var(--color-surface, #f6f8fb);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 1.375rem;
+  resize: none;
+  overflow-y: auto;
+}
+
+.chat-form textarea:focus {
+  outline: 2px solid var(--color-primary, #1a56db);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.chat-send {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-primary, #1a56db);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s ease, scale 0.15s ease;
+}
+
+.chat-send:hover {
+  background: var(--color-primary-dark, #1e429f);
+}
+
+.chat-send:active {
+  scale: 0.92;
+}
+
+.chat-send:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* El avión de papel pesa visualmente a la izquierda: un píxel lo centra. */
+.chat-send svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  translate: -1px 1px;
+}
+
+.chat-disclaimer {
+  grid-column: 1 / -1;
+  font-size: 0.72rem;
+  color: var(--color-muted, #6b7280);
+  text-align: center;
+}
+
+/* En móvil el panel ocupa toda la pantalla: el botón flotante se retira (la ✕
+   de la cabecera cierra) y la página de detrás deja de hacer scroll. */
+@media (max-width: 640px) {
+  .chat {
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .chat-panel {
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
+    border: none;
+    border-radius: 0;
+  }
+
+  .chat-form {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  .chat.is-open .chat-launcher {
+    opacity: 0;
+    scale: 0.6;
+    visibility: hidden;
+  }
+
+  html:has(.chat.is-open) {
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* El panel aparece con un fundido, sin escalarse ni desplazarse. */
+  .chat-panel,
+  .chat.is-open .chat-panel {
+    scale: none;
+    translate: none;
+  }
+
+  .chat-launcher,
+  .chat-launcher::after,
+  .chat-status,
+  .chat-bubble {
+    animation: none;
+  }
+
+  .chat-launcher:hover {
+    translate: none;
+  }
+
+  .chat-launcher-icon {
+    rotate: none;
+    scale: none;
+  }
+
+  .chat.is-open .chat-launcher-open,
+  .chat.is-open .chat-launcher-close {
+    rotate: none;
+    scale: none;
+  }
+
+  .chat-typing-dot {
+    animation: none;
+    opacity: 0.6;
+  }
+}

@@ -20,11 +20,36 @@ from django.utils import timezone
 logger = logging.getLogger('apps.landing')
 
 ALLOWED_SCHEMES = ('http', 'https')
+LOCAL_HOSTS = ('localhost', '127.0.0.1', '::1')
+
+
+def is_valid_webhook_url(url: str, setting_name: str) -> bool:
+    """True si `url` está configurada y es aceptable como destino en n8n.
+
+    Se exige https salvo contra un n8n local: lo que se envía lleva datos
+    personales y el token de autenticación va en una cabecera, así que en
+    claro por internet sería regalar ambos. La usan el webhook de leads y el
+    del chat (apps/landing/chat.py).
+    """
+    if not url:
+        return False
+
+    parsed = urlparse(url)
+    if parsed.scheme not in ALLOWED_SCHEMES:
+        logger.error('%s con esquema no permitido: %s', setting_name, parsed.scheme)
+        return False
+    if parsed.scheme == 'http' and parsed.hostname not in LOCAL_HOSTS:
+        logger.error(
+            '%s usa http contra un host remoto (%s): el token y los datos '
+            'viajarían sin cifrar. Usa https.', setting_name, parsed.hostname
+        )
+        return False
+    return True
 
 
 def is_enabled() -> bool:
-    url = getattr(settings, 'N8N_WEBHOOK_URL', '')
-    return bool(url) and urlparse(url).scheme in ALLOWED_SCHEMES
+    """True si hay un webhook de leads configurado y su URL es aceptable."""
+    return is_valid_webhook_url(getattr(settings, 'N8N_WEBHOOK_URL', ''), 'N8N_WEBHOOK_URL')
 
 
 def build_payload(lead) -> dict:

@@ -1,17 +1,33 @@
+# Todo lo que no necesita la imagen de producción: reduce tamaño y superficie.
 .venv/
 .git/
+.gitignore
+.github/
 __pycache__/
 *.pyc
 db.sqlite3
 staticfiles/
 media/
+
+# Secretos y configuración local
 .env
 .env.example
-.gitignore
-.dockerignore
-Dockerfile
+.editorconfig
+.vscode/
+.idea/
+
+# Documentación y herramientas de desarrollo
+README.md
 CLAUDE.md
 notas-aprendizaje.md
+docs/
+.claude/
+n8n/
+Dockerfile
+.dockerignore
+
+# Tests y sus dependencias
 requirements/development.txt
 apps/accounts/tests/
+apps/common/tests/
 apps/landing/tests/

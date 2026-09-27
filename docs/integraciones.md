@@ -1,4 +1,4 @@
-# Integraciones — Webhook de leads → n8n
+# Integraciones — Webhook de leads y chat → n8n
 
 Cada lead que entra por el formulario se guarda en la BD y se reenvía a n8n, que lo
 registra en Airtable y avisa por Telegram.
@@ -111,3 +111,93 @@ pierde en cada redeploy de n8n, así que se descartó.
 `build_payload()` en `webhooks.py` define los nombres de los campos. Si los cambias,
 hay que actualizar también el workflow de n8n (nodo *Normalizar lead*) y el test
 `test_posts_json_payload_with_token_header`. Los tres van juntos.
+
+---
+
+# Chat con el agente de IA
+
+El botón flotante de la esquina abre un chat en el que responde un agente de IA
+montado en n8n. El navegador nunca habla con n8n: envía cada mensaje a `POST /chat/`
+y Django lo reenvía, así que la URL y el token no se ven en la web.
+
+Código: [`apps/landing/chat.py`](../apps/landing/chat.py) (llamada a n8n) ·
+`ChatView` en [`views.py`](../apps/landing/views.py) ·
+[`static/js/chat.js`](../static/js/chat.js) ·
+[`templates/partials/chat-widget.html`](../templates/partials/chat-widget.html) ·
+Workflow: [`n8n/chat-agent.workflow.json`](../n8n/chat-agent.workflow.json)
+
+```
+chat.js ──fetch──► POST /chat/ ──► [Webhook chat] ──► [¿Token válido?] ──sí──► [Agente IAbits] ◄── [Modelo Anthropic]
+   ▲                  │                                     │                         │
+   │                  │                                     no                        ▼
+   └──── { reply } ◄──┘◄──────────────────────────── [Responder 401]    [Responder con la respuesta]
+```
+
+## Qué hace Django con cada mensaje
+
+1. Valida el texto (1–500 caracteres) y el CSRF.
+2. Aplica el límite por IP (`CHAT_THROTTLE_*`, por defecto 20 mensajes/hora), contado
+   sobre la IP de **quien envía** cada mensaje vía `get_client_ip()`.
+3. Recupera la conversación (`conversation_id`) o empieza una nueva si no existe.
+4. Guarda el mensaje del visitante **antes** de llamar a n8n: queda en el admin aunque falle.
+5. Llama a n8n de forma síncrona (el visitante espera la respuesta) con `N8N_CHAT_TIMEOUT`.
+6. Guarda la respuesta y la devuelve. Si n8n falla, tarda o responde sin `reply`, el
+   visitante ve `content.CHAT['error_message']` con un enlace al formulario (HTTP 503).
+
+La memoria de la conversación vive en la BD de Django: cada petición lleva los últimos
+10 mensajes en `history`, así que el workflow no guarda nada entre llamadas y un
+reinicio de n8n no borra ninguna conversación.
+
+Las conversaciones se leen en `/admin/` → **Conversaciones del chat** (solo lectura).
+
+## Payload que envía Django
+
+```json
+{
+  "event": "chat.message",
+  "source": "landing",
+  "sent_at": "2026-09-27T10:00:00+00:00",
+  "conversation_id": "b0e1...uuid",
+  "message": "¿Y cuánto cuesta?",
+  "history": [
+    {"role": "user", "text": "Hola"},
+    {"role": "assistant", "text": "¡Hola! ¿Qué tarea te gustaría automatizar?"}
+  ]
+}
+```
+
+Cabeceras: `Content-Type: application/json` y `X-Webhook-Token: <N8N_WEBHOOK_TOKEN>`
+(el mismo token que el webhook de leads).
+
+**n8n debe responder** `{"reply": "texto de la respuesta"}` con un 2xx. El texto se
+muestra tal cual, como texto plano (se respetan los saltos de línea; el Markdown no
+se interpreta), y se recorta a 4000 caracteres.
+
+## Variables de entorno en Django
+
+| Variable | Descripción |
+|---|---|
+| `N8N_CHAT_WEBHOOK_URL` | URL de producción del webhook del chat. Vacío = el chat no se muestra y `/chat/` da 404. |
+| `N8N_CHAT_TIMEOUT` | Segundos de espera a la respuesta del agente (por defecto 25; menos que los 60 de gunicorn). |
+| `CHAT_THROTTLE_MAX` / `CHAT_THROTTLE_WINDOW_MINUTES` | Mensajes por IP y ventana (por defecto 20 / 60 min). Cada mensaje es una llamada de pago al modelo. |
+
+## Puesta en marcha del workflow
+
+1. En n8n: **Workflows → ⋯ → Import from File** → `n8n/chat-agent.workflow.json`.
+2. Nodo **¿Token válido?**: sustituye `PON-AQUI-EL-MISMO-TOKEN-QUE-EN-N8N_WEBHOOK_TOKEN`.
+3. Nodo **Modelo Anthropic** → *Credential* → nueva "Anthropic API" con una API key de
+   [console.anthropic.com](https://console.anthropic.com). Viene con Claude Haiku 4.5
+   (rápido y barato para un chat); se cambia en el desplegable *Model*.
+   Para usar OpenAI, borra ese nodo, añade *OpenAI Chat Model* y conéctalo al agente
+   en la entrada *Chat Model*.
+4. El comportamiento del agente (servicios, tono, reglas) está en el nodo
+   **Agente IAbits → Options → System Message**. Si cambian los servicios en
+   `content.py`, actualízalo también allí.
+5. Activa el workflow, copia la **Production URL** del nodo *Webhook chat* y ponla en
+   `N8N_CHAT_WEBHOOK_URL`.
+
+## Si cambias el payload
+
+`build_payload()` en `chat.py` define los campos, y el workflow los lee en el campo
+*Text* del nodo *Agente IAbits* (`$json.body.message` y `$json.body.history`). El test
+`test_sends_payload_with_token_and_history` los fija. Los tres van juntos.

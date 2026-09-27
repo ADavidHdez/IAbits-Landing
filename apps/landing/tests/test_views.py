@@ -145,6 +145,10 @@ class SecurityTests(TestCase):
         self.assertIn('login', response['Location'])
 
     def test_lead_stores_client_ip_and_user_agent(self):
+        """Se guarda la última entrada de X-Forwarded-For: la que añade el proxy.
+
+        Las anteriores puede haberlas escrito el propio cliente.
+        """
         self.client.post(
             self.url,
             self.data,
@@ -152,8 +156,15 @@ class SecurityTests(TestCase):
             HTTP_USER_AGENT='NavegadorPrueba/1.0',
         )
         lead = Lead.objects.get()
-        self.assertEqual(lead.ip_address, '203.0.113.7')
+        self.assertEqual(lead.ip_address, '10.0.0.2')
         self.assertEqual(lead.user_agent, 'NavegadorPrueba/1.0')
+
+    def test_spoofed_forwarded_header_is_ignored(self):
+        """Una cabecera inventada no debe acabar en la BD ni cambiar la IP."""
+        self.client.post(
+            self.url, self.data, HTTP_X_FORWARDED_FOR='no-es-una-ip', REMOTE_ADDR='198.51.100.9'
+        )
+        self.assertEqual(Lead.objects.get().ip_address, '198.51.100.9')
 
 
 @override_settings(LEAD_THROTTLE_MAX=3, LEAD_THROTTLE_WINDOW_MINUTES=60)
@@ -195,9 +206,23 @@ class LeadThrottleTests(TestCase):
         self.assertRedirects(response, self.url + '#contacto')
         self.assertEqual(Lead.objects.count(), 4)
 
-    def test_x_forwarded_for_first_ip_wins(self):
+    def test_x_forwarded_for_last_ip_wins(self):
         for _ in range(4):
             self.client.post(
                 self.url, self.data, HTTP_X_FORWARDED_FOR='203.0.113.7, 10.0.0.2'
+            )
+        self.assertEqual(Lead.objects.count(), 3)
+
+    def test_spoofed_forwarded_header_does_not_bypass_throttle(self):
+        """Rotar la primera entrada de X-Forwarded-For no debe dar envíos extra.
+
+        Era el agujero: al quedarnos con la primera IP, cualquiera podía
+        inventarse una distinta en cada POST y saltarse el límite.
+        """
+        for i in range(5):
+            self.client.post(
+                self.url,
+                self.data,
+                HTTP_X_FORWARDED_FOR=f'203.0.113.{i}, 10.0.0.2',
             )
         self.assertEqual(Lead.objects.count(), 3)
