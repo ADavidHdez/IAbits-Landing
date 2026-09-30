@@ -1173,20 +1173,22 @@ nav a:hover {
 }
 
 .chat-subtitle {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
   font-size: 0.8rem;
   opacity: 0.85;
 }
 
-/* Punto de "en línea" con un latido suave. */
+/* Punto de "en línea" con un latido suave. `inline-block` en vez de flex:
+   el subtítulo puede ocupar dos líneas, y con flex el punto se centraba
+   contra ese bloque entero en vez de quedar junto a la primera línea. Así
+   fluye como parte del texto y solo se alinea con la línea en la que está. */
 .chat-status {
-  flex: none;
+  display: inline-block;
   width: 0.5rem;
   height: 0.5rem;
+  margin-right: 0.4rem;
   border-radius: 50%;
-  background: #ffffff;
+  background: #81d66c;
+  vertical-align: middle;
   animation: chat-status 2.4s ease-in-out infinite;
 }
 

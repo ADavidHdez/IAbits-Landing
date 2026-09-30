@@ -187,12 +187,11 @@ FORM_SECTION = {
 # muestra si N8N_CHAT_WEBHOOK_URL está configurada.
 CHAT = {
     'title': 'IAbits Studio',
-    'subtitle': 'Asistente de IA · responde al momento',
+    'subtitle': 'Asistente de IAbits',
     'greeting': (
-        '¡Hola! 👋 Soy el asistente de IAbits. Cuéntame qué tarea te gustaría '
-        'quitarte de encima y te digo cómo podríamos automatizarla.'
+        '¡Hola! 👋 Soy el asistente de IAbits. Cuéntame que te gustaría saber y veremos como podemos ayudarte.'
     ),
-    'placeholder': 'Escribe tu mensaje…',
+    'placeholder': 'Escribe tu mensaje…'
     'input_label': 'Tu mensaje',
     'disclaimer': 'Respuestas generadas por IA.',
     'typing_label': 'El asistente está escribiendo…',
