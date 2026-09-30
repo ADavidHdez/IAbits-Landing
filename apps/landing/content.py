@@ -191,7 +191,7 @@ CHAT = {
     'greeting': (
         '¡Hola! 👋 Soy el asistente de IAbits. Cuéntame que te gustaría saber y veremos como podemos ayudarte.'
     ),
-    'placeholder': 'Escribe tu mensaje…'
+    'placeholder': 'Escribe tu mensaje…',
     'input_label': 'Tu mensaje',
     'disclaimer': 'Respuestas generadas por IA.',
     'typing_label': 'El asistente está escribiendo…',
