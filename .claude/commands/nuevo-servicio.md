@@ -26,7 +26,7 @@ formulario, **sin migración** (los choices salen de `service_choices()`).
    ```
    Colócalo en la posición que tenga sentido narrativo, no siempre al final.
 
-3. Comprueba que **no** hace falta tocar nada más: ni `home.html` (itera sobre
+3. Comprueba que **no** hace falta tocar nada más: ni `landing.html` (itera sobre
    `services`), ni `main.css`, ni migraciones. Si crees que sí, párate y explica por qué
    antes de tocar nada.
 

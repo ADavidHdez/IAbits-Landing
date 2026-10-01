@@ -7,16 +7,17 @@ algo estructural, léelo antes: casi todo lo que parece raro tiene un motivo.
 
 ## Vista general
 
-Una sola página pública (`/`) que hace dos cosas: vender y captar leads.
+La landing (`/landing/`) hace dos cosas: vender y captar leads. La home de presentación
+vive aparte en `/` (app `apps/home`) y ninguna de las dos enlaza a la otra.
 No hay registro de usuarios, ni área privada, ni API pública.
 
 ```
 Visitante
-   │  GET /
+   │  GET /landing/
    ▼
-LandingView (CreateView) ──► content.get_landing_context() ──► home.html
+LandingView (CreateView) ──► content.get_landing_context() ──► landing.html
    │
-   │  POST / (formulario)
+   │  POST /landing/ (formulario)
    ▼
 1. ¿honeypot relleno?  ──sí──► finge éxito, no guarda nada
 2. ¿throttle por IP?   ──sí──► 429 / mensaje de error
@@ -57,11 +58,11 @@ un solo archivo Python. La plantilla solo los pinta.
 **Por qué**: el dueño del proyecto puede cambiar cualquier copy o color editando un
 archivo, sin tocar HTML, CSS ni base de datos, y sin riesgo de romper el diseño.
 
-Consecuencia práctica: **nunca escribas texto literal en `home.html`**. Si necesitas una
+Consecuencia práctica: **nunca escribas texto literal en `landing.html`**. Si necesitas una
 frase nueva, añádela a `content.py` y referénciala desde la plantilla.
 
 ### Colores como variables CSS
-`content.THEME` → bloque `<style>` con nonce en `home.html` → `:root { --color-primary: … }`
+`content.THEME` → bloque `<style>` con nonce en `landing.html` → `:root { --color-primary: … }`
 → `main.css` los consume con `var(--color-primary, #1a56db)`.
 
 El fallback del `var()` importa: si alguien borra una clave de `THEME`, la web sigue
@@ -140,7 +141,7 @@ Implicaciones al escribir código:
 
 ---
 
-## Estructura de `home.html`
+## Estructura de `landing.html`
 
 Secciones en orden, todas alimentadas por `content.py`:
 

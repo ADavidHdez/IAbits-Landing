@@ -16,7 +16,7 @@ Marca en **rojo** cualquier cambio en:
 - `static/css/main.css`
 - `static/js/*.js`
 - `templates/base.html`
-- `apps/landing/templates/landing/home.html`
+- `apps/landing/templates/landing/landing.html`
 - La clave `THEME` de `apps/landing/content.py`
 
 ## 2. Si alguno cambió, mira el diff
@@ -41,7 +41,7 @@ La única excepción permitida es el `<style>` del tema, que lleva nonce.
 
 ## 4. Atributos `data-*` intactos
 
-Si se tocó `home.html`, verifica que siguen presentes los atributos que consume el JS:
+Si se tocó `landing.html`, verifica que siguen presentes los atributos que consume el JS:
 `data-lead-form`, `data-field`, `data-form-errors`, `data-form-feedback`,
 `data-sending-text`, `data-reveal`, `data-reveal-group`, `data-timeline`,
 `data-timeline-item`, `data-timeline-icon`, `data-card-3d`.

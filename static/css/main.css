@@ -980,7 +980,7 @@ nav a:hover {
   }
 }
 
-/* --- Chat flotante (templates/partials/chat-widget.html, static/js/chat.js) --- */
+/* --- Chat flotante (apps/landing/templates/landing/partials/chat-widget.html, static/js/chat.js) --- */
 
 /* Todo el widget cuelga de la esquina inferior derecha. Queda por encima de
    la página pero por debajo del confeti (z-index 9999). */

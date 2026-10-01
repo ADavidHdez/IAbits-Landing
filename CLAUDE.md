@@ -1,7 +1,8 @@
 # CLAUDE.md — IAbits Landing
 
-Landing de una sola página para **IAbits Studio** (agencia de automatización con IA).
-Capta leads por formulario → los guarda en BD → los reenvía a n8n por webhook.
+Web de **IAbits Studio** (agencia de automatización con IA): una home de presentación
+en `/` y una landing de captación en `/landing/`, sin enlaces entre ellas.
+La landing capta leads por formulario → los guarda en BD → los reenvía a n8n por webhook.
 
 **Django 6 · Python 3.13 · SQLite (dev) / Postgres (prod) · Docker + Easypanel**
 
@@ -13,7 +14,7 @@ Capta leads por formulario → los guarda en BD → los reenvía a n8n por webho
 ## Reglas que no se negocian
 
 1. **No tocar diseño ni estilo salvo petición explícita.** Si una tarea es de backend,
-   `main.css`, los `.js` de animación y la estructura de `home.html` se quedan como están.
+   `main.css`, los `.js` de animación y la estructura de `landing.html` se quedan como están.
 2. **`apps/landing/content.py` es la única fuente** de textos, colores, servicios y datos
    de contacto. Nunca escribas texto literal en una plantilla ni un color en el CSS.
 3. **CSP estricta** (`SECURE_CSP` en `config/settings/base.py`): prohibido JS inline,
@@ -32,12 +33,13 @@ Capta leads por formulario → los guarda en BD → los reenvía a n8n por webho
 | `apps/landing/content.py` | **Textos, colores, servicios, contacto** | Cambiar cualquier copy o color |
 | `apps/landing/models.py` | `Lead` (UUID pk), `ChatConversation` y `ChatMessage` | Nuevo campo → requiere migración |
 | `apps/landing/forms.py` | `LeadForm` + honeypot `website` | Cambiar campos del formulario |
-| `apps/landing/views.py` | `LandingView` (CreateView): honeypot, throttle, AJAX/JSON · `ChatView` (`POST /chat/`) | Lógica de envío y del chat |
+| `apps/landing/views.py` | `LandingView` (CreateView): honeypot, throttle, AJAX/JSON · `ChatView` (`POST /landing/chat/`) | Lógica de envío y del chat |
 | `apps/landing/webhooks.py` | Envío del lead a n8n (stdlib `urllib`, hilo aparte) | Integración n8n |
 | `apps/landing/chat.py` | Llamada síncrona al agente de IA de n8n para el chat | Integración del chat |
 | `apps/landing/admin.py` | Tabla de leads + acción "Reenviar a n8n" · conversaciones del chat (solo lectura) | Panel `/admin/` |
-| `templates/partials/chat-widget.html` | HTML del chat flotante (se incluye solo si el chat está activo) | Estructura del chat |
-| `apps/landing/templates/landing/home.html` | La landing entera (175 líneas) | Estructura de secciones |
+| `apps/landing/templates/landing/partials/chat-widget.html` | HTML del chat flotante (se incluye solo si el chat está activo) | Estructura del chat |
+| `apps/landing/templates/landing/landing.html` | La landing entera (175 líneas) | Estructura de secciones |
+| `apps/home/` | Web home (`HomeView`, `TemplateView`) con su plantilla `home/home.html`. Sin modelos | Presentación de la empresa |
 | `templates/base.html` | Molde: `<head>`, nonce, variables CSS del tema | Rara vez |
 | `static/css/main.css` | Todo el estilo (839 líneas, usa `var(--…)`) | Solo en tareas de diseño |
 | `static/js/*.js` | `lead-form` (AJAX), `chat`, `reveal`, `cards-3d`, `confetti`, `timeline` | Solo en tareas de diseño |
@@ -47,7 +49,7 @@ Capta leads por formulario → los guarda en BD → los reenvía a n8n por webho
 | `n8n/lead-webhook.workflow.json` | Workflow importable en n8n | Cambia el payload del webhook |
 | `n8n/chat-agent.workflow.json` | Workflow del agente de IA del chat (prompt de sistema incluido) | Cambia el payload o el comportamiento del agente |
 
-**URLs**: `/` → landing · `/chat/` (POST JSON) · `/accounts/login/` · admin en `settings.ADMIN_URL` (secreto en prod).
+**URLs**: `/` → home · `/landing/` → landing · `/landing/chat/` (POST JSON) · `/accounts/login/` · admin en `settings.ADMIN_URL` (secreto en prod).
 
 ---
 

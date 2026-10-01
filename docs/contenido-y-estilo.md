@@ -24,7 +24,7 @@ edita el valor. No hace falta tocar plantillas, ni CSS, ni migrar.
 | Email y teléfono | `CONTACT` |
 | Pie de página | `FOOTER` |
 
-**Nunca** escribas la frase directamente en `home.html`: rompe la regla de fuente única
+**Nunca** escribas la frase directamente en `landing.html`: rompe la regla de fuente única
 y hace que el dueño del proyecto ya no pueda cambiarla solo.
 
 Si un test comprueba ese texto (varios lo hacen, comparando contra `content.*`),
@@ -71,11 +71,11 @@ THEME = {
 }
 ```
 
-Recorrido: `THEME` → bloque `<style>` con nonce en `home.html` → `:root { --color-… }`
+Recorrido: `THEME` → bloque `<style>` con nonce en `landing.html` → `:root { --color-… }`
 → `main.css` con `var(--color-primary, #1a56db)`.
 
 Si añades una clave nueva a `THEME`, hay que declararla también en el bloque `<style>`
-de `home.html` para que llegue al CSS. Y en `main.css` úsala **siempre con fallback**:
+de `landing.html` para que llegue al CSS. Y en `main.css` úsala **siempre con fallback**:
 `var(--mi-color, #valor)`.
 
 ---
@@ -88,7 +88,7 @@ Cuatro pasos, en este orden:
    de las secciones existentes (`XXX_SECTION` con `title`/`subtitle`, más los datos).
 2. **`content.get_landing_context()`**: añade la clave al diccionario que devuelve, o la
    plantilla no la verá.
-3. **`home.html`**: añade el `<section>` en el punto que corresponda, referenciando solo
+3. **`landing.html`**: añade el `<section>` en el punto que corresponda, referenciando solo
    variables de contexto. Reutiliza clases existentes (`section-sub`, `card`, `btn`…) y
    `data-reveal` para que herede la animación de scroll.
 4. **`main.css`**: solo si necesitas estilos que no existan. Usa `var(--…)`, nunca

@@ -39,7 +39,7 @@ THEME = {
 }
 
 HERO = {
-    'headline': 'Recupera cientos de horas al mes con agentes de IA trabajando para ti',
+    'headline': 'Recupera cientos de horas al mes con la automatización y la IA trabajando para ti',
     'subheadline': (
         'Automatizamos ventas, procesos y conocimiento interno para que tu '
         'equipo se dedique a lo que genera ingresos. Sin ampliar plantilla.'
@@ -55,12 +55,12 @@ SERVICES_SECTION = {
 
 SERVICES = [
     Service(
-        slug='agentes-outbound',
+        slug='agentes-inbound',
         icon='🤖',
-        title='Agentes de IA para ventas outbound',
+        title='Asistentes de negocios con IA',
         description=(
-            'Equipos de agentes autónomos que prospectan, cualifican y '
-            'contactan clientes por ti, 24/7. Tu embudo nunca duerme.'
+            'Agentes autónomos que asisten al cliente, venden '
+            'y ejecutan tareas por ti, 24/7.'
         ),
     ),
     Service(
@@ -145,9 +145,9 @@ STEPS_SECTION = {
 STEPS = [
     {
         'number': '1',
-        'title': 'Diagnóstico gratuito',
+        'title': 'Diagnóstico de procesos',
         'text': (
-            'Analizamos tus procesos y te decimos exactamente dónde estás '
+            'Analizamos los procesos de tu negocio al detalle y te decimos exactamente dónde estás '
             'perdiendo tiempo y dinero.'
         ),
     },
@@ -172,10 +172,10 @@ STEPS = [
 FORM_SECTION = {
     'title': 'Cuéntanos qué quieres automatizar',
     'subtitle': (
-        'Déjanos tus datos y te contactamos con un diagnóstico gratuito, '
-        'sin compromiso.'
+        'Déjanos tus datos y te contactamos antes de 24 horas, '
+        'sin ningun compromiso.'
     ),
-    'submit_text': 'Solicitar diagnóstico gratuito',
+    'submit_text': 'Solicitar diagnóstico',
     'sending_text': 'Enviando…',
     'success_message': 'Gracias por tu interés. Te contactaremos en menos de 24 horas.',
     'error_message': (
@@ -189,7 +189,7 @@ CHAT = {
     'title': 'IAbits Studio',
     'subtitle': 'Asistente de IAbits',
     'greeting': (
-        '¡Hola! 👋 Soy el asistente de IAbits. Cuéntame que te gustaría saber y veremos como podemos ayudarte.'
+        '¡Hola! 👋 Soy el asistente de IAbits. Cuéntame qué te gustaría saber y veremos cómo podemos ayudarte.'
     ),
     'placeholder': 'Escribe tu mensaje…',
     'input_label': 'Tu mensaje',

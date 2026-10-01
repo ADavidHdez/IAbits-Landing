@@ -117,17 +117,17 @@ hay que actualizar también el workflow de n8n (nodo *Normalizar lead*) y el tes
 # Chat con el agente de IA
 
 El botón flotante de la esquina abre un chat en el que responde un agente de IA
-montado en n8n. El navegador nunca habla con n8n: envía cada mensaje a `POST /chat/`
+montado en n8n. El navegador nunca habla con n8n: envía cada mensaje a `POST /landing/chat/`
 y Django lo reenvía, así que la URL y el token no se ven en la web.
 
 Código: [`apps/landing/chat.py`](../apps/landing/chat.py) (llamada a n8n) ·
 `ChatView` en [`views.py`](../apps/landing/views.py) ·
 [`static/js/chat.js`](../static/js/chat.js) ·
-[`templates/partials/chat-widget.html`](../templates/partials/chat-widget.html) ·
+[`apps/landing/templates/landing/partials/chat-widget.html`](../apps/landing/templates/landing/partials/chat-widget.html) ·
 Workflow: [`n8n/chat-agent.workflow.json`](../n8n/chat-agent.workflow.json)
 
 ```
-chat.js ──fetch──► POST /chat/ ──► [Webhook chat] ──► [¿Token válido?] ──sí──► [Agente IAbits] ◄── [Modelo Anthropic]
+chat.js ──fetch──► POST /landing/chat/ ──► [Webhook chat] ──► [¿Token válido?] ──sí──► [Agente IAbits] ◄── [Modelo Anthropic]
    ▲                  │                                     │                         │
    │                  │                                     no                        ▼
    └──── { reply } ◄──┘◄──────────────────────────── [Responder 401]    [Responder con la respuesta]
@@ -177,7 +177,7 @@ se interpreta), y se recorta a 4000 caracteres.
 
 | Variable | Descripción |
 |---|---|
-| `N8N_CHAT_WEBHOOK_URL` | URL de producción del webhook del chat. Vacío = el chat no se muestra y `/chat/` da 404. |
+| `N8N_CHAT_WEBHOOK_URL` | URL de producción del webhook del chat. Vacío = el chat no se muestra y `/landing/chat/` da 404. |
 | `N8N_CHAT_TIMEOUT` | Segundos de espera a la respuesta del agente (por defecto 25; menos que los 60 de gunicorn). |
 | `CHAT_THROTTLE_MAX` / `CHAT_THROTTLE_WINDOW_MINUTES` | Mensajes por IP y ventana (por defecto 20 / 60 min). Cada mensaje es una llamada de pago al modelo. |
 

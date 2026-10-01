@@ -26,7 +26,7 @@ THROTTLE_MESSAGE = 'Has enviado demasiadas solicitudes. Inténtalo de nuevo más
 class LandingView(CreateView):
     model = Lead
     form_class = LeadForm
-    template_name = 'landing/home.html'
+    template_name = 'landing/landing.html'
 
     def post(self, request, *args, **kwargs):
         self.object = None

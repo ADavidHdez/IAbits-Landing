@@ -10,5 +10,5 @@ class LeadFactory(factory.django.DjangoModelFactory):
     name = factory.Faker('name', locale='es_ES')
     email = factory.Faker('email')
     company = factory.Faker('company', locale='es_ES')
-    service_interest = 'agentes-outbound'
+    service_interest = 'agentes-inbound'
     message = factory.Faker('sentence', locale='es_ES')

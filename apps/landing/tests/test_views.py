@@ -12,7 +12,7 @@ class LandingViewGetTests(TestCase):
     def test_returns_200_with_template(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'landing/home.html')
+        self.assertTemplateUsed(response, 'landing/landing.html')
 
     def test_renders_hero_and_services(self):
         response = self.client.get(self.url)

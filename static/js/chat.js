@@ -1,6 +1,6 @@
 /* Chat flotante con el asistente de IA.
 
-   Cada mensaje va por fetch() a /chat/ (ChatView en apps/landing/views.py),
+   Cada mensaje va por fetch() a /landing/chat/ (ChatView en apps/landing/views.py),
    que lo reenvía al agente de n8n y devuelve su respuesta. El widget llega
    con `hidden` y solo este script lo muestra: sin JS la landing queda como
    siempre, con el formulario de contacto. */

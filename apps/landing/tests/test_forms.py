@@ -9,7 +9,7 @@ def valid_data(**overrides):
         'name': 'Ana Pérez',
         'email': 'ana@empresa.com',
         'company': 'Empresa SA',
-        'service_interest': 'agentes-outbound',
+        'service_interest': 'agentes-inbound',
         'message': 'Quiero automatizar mi prospección.',
         'website': '',
     }

@@ -18,7 +18,7 @@ Todo el copy va aquí — **nada de texto literal en la plantilla**.
 
 Añade las claves nuevas al diccionario que devuelve, o la plantilla no las verá.
 
-## 3. `apps/landing/templates/landing/home.html`
+## 3. `apps/landing/templates/landing/landing.html`
 
 Inserta el `<section>` en el punto que corresponda al recorrido de venta (hero →
 servicios → propuestas de valor → cómo trabajamos → contacto).
