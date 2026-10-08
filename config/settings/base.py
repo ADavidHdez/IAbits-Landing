@@ -16,6 +16,8 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Sin django.contrib.sites: el sitemap toma el dominio de la petición.
+    'django.contrib.sitemaps',
 ]
 
 LOCAL_APPS = [
@@ -71,6 +73,8 @@ TEMPLATES = [
                 'django.template.context_processors.csp',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.common.context_processors.canonical',
+                'apps.landing.context_processors.brand',
             ],
         },
     },

@@ -1,0 +1,19 @@
+{% comment %}
+Meta description, Open Graph, Twitter Card y JSON-LD de una página pública.
+Espera en el contexto `site` (title y meta_description) y `json_ld` (de la
+vista); `brand`, `canonical_url` y `social_image_url` llegan por context
+processors. El JSON-LD no es JavaScript ejecutable, pero lleva nonce igual.
+{% endcomment %}
+<meta name="description" content="{{ site.meta_description }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ brand.name }}">
+<meta property="og:title" content="{{ site.title }}">
+<meta property="og:description" content="{{ site.meta_description }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="og:locale" content="{{ brand.locale }}">
+<meta property="og:image" content="{{ social_image_url }}">
+<meta property="og:image:width" content="{{ brand.social_image_width }}">
+<meta property="og:image:height" content="{{ brand.social_image_height }}">
+<meta property="og:image:alt" content="{{ brand.name }}">
+<meta name="twitter:card" content="summary">
+{% if json_ld %}<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ json_ld }}</script>{% endif %}

@@ -2,6 +2,10 @@
 
 {% block title %}Iniciar sesión{% endblock %}
 
+{# Acceso solo para staff: fuera de los buscadores (y sin canónica, que diría lo contrario). #}
+{% block canonical %}{% endblock %}
+{% block meta %}<meta name="robots" content="noindex">{% endblock %}
+
 {% block content %}
 <h1>Iniciar sesión</h1>
 <form method="post">

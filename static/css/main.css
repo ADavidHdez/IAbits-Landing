@@ -1454,3 +1454,491 @@ nav a:hover {
     opacity: 0.6;
   }
 }
+
+/* ===================================================================== */
+/* --- Web home (apps/home/templates/home/home.html) --- */
+/* ===================================================================== */
+
+/* Barra fija y translúcida: deja ver el contenido que pasa por debajo,
+   difuminado. Sin soporte de color-mix se queda con el blanco casi opaco. */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 800;
+  background: rgba(255, 255, 255, 0.85);
+  background: color-mix(in srgb, var(--color-bg, #ffffff) 72%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  border-bottom-color: color-mix(in srgb, var(--color-border, #e5e7eb) 70%, transparent);
+}
+
+/* Anula la `nav` genérica de la landing (centrada y con aire arriba). */
+.site-nav {
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+}
+
+.site-nav-brand {
+  display: inline-flex;
+}
+
+.site-nav-logo {
+  display: block;
+  height: 2.5rem;
+  width: auto;
+}
+
+.site-nav-links {
+  display: flex;
+  gap: 1.75rem;
+  list-style: none;
+}
+
+.site-nav-links a {
+  position: relative;
+  padding: 0.35rem 0;
+}
+
+.site-nav-links a[aria-current='page'] {
+  color: var(--color-primary, #1a56db);
+}
+
+.site-nav-links a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-primary, #1a56db);
+}
+
+/* Las anclas no quedan tapadas por la barra fija. */
+.intro,
+.products,
+.tech,
+.team {
+  scroll-margin-top: 4.5rem;
+}
+
+/* --- Hueco de foto (mientras no haya imagen real) --- */
+
+.photo {
+  display: block;
+  width: 100%;
+  border-radius: var(--radius, 12px);
+  object-fit: cover;
+}
+
+.photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: var(--color-surface, #f6f8fb);
+  border: 2px dashed var(--color-border, #e5e7eb);
+  border-color: color-mix(in srgb, var(--color-primary, #1a56db) 30%, transparent);
+  color: var(--color-muted, #6b7280);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.photo-placeholder svg {
+  width: 3rem;
+  height: 3rem;
+  color: var(--color-primary, #1a56db);
+  opacity: 0.6;
+}
+
+/* --- Bloque 1: presentación --- */
+
+.intro {
+  padding: 5rem 0 6rem;
+}
+
+.intro-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: 3.5rem;
+}
+
+.eyebrow {
+  margin-bottom: 0.75rem;
+  color: var(--color-primary, #1a56db);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.intro h1 {
+  font-size: clamp(2rem, 4.5vw, 3rem);
+}
+
+.intro-description {
+  margin-top: 1.25rem;
+  color: var(--color-muted, #6b7280);
+  font-size: 1.1rem;
+}
+
+.intro-description p + p {
+  margin-top: 1rem;
+}
+
+.intro-photo {
+  aspect-ratio: 4 / 3;
+}
+
+/* --- Bloque 2: productos --- */
+
+.products {
+  background: var(--color-surface, #f6f8fb);
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  max-width: 880px;
+  margin: 3rem auto 0;
+}
+
+.support-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 3rem auto 0;
+}
+
+/* Columna flexible: el botón se queda abajo aunque una tarjeta tenga menos
+   características que la otra. */
+.product {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 2.25rem 2rem 2rem;
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius, 12px);
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.05),
+    0 10px 24px -18px rgba(17, 24, 39, 0.4);
+}
+
+.product-featured {
+  border: 2px solid var(--color-primary, #1a56db);
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.06),
+    0 24px 48px -28px rgba(26, 86, 219, 0.55);
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.06),
+    0 24px 48px -28px color-mix(in srgb, var(--color-primary, #1a56db) 55%, transparent);
+}
+
+.product-badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  translate: -50% -50%;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  background: var(--color-primary, #1a56db);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.product h3 {
+  font-size: 1.4rem;
+}
+
+.product-summary {
+  margin-top: 0.5rem;
+  color: var(--color-muted, #6b7280);
+  font-size: 0.95rem;
+}
+
+.product-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  margin: 1.5rem 0;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.product-amount {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.product-price-note {
+  color: var(--color-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+.product-features {
+  display: grid;
+  gap: 0.7rem;
+  margin-bottom: 2rem;
+  list-style: none;
+}
+
+/* Marca de verificación dibujada con dos bordes de una caja girada. */
+.product-features li {
+  position: relative;
+  padding-left: 1.75rem;
+  font-size: 0.95rem;
+}
+
+.product-features li::before {
+  content: '';
+  position: absolute;
+  left: 0.3rem;
+  top: 0.3rem;
+  width: 0.4rem;
+  height: 0.75rem;
+  border: solid var(--color-primary, #1a56db);
+  border-width: 0 2px 2px 0;
+  rotate: 45deg;
+}
+
+.product .btn {
+  margin-top: auto;
+  text-align: center;
+}
+
+/* Variante secundaria del botón: mismo tamaño que .btn-primary, sin relleno. */
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary, #1a56db);
+  box-shadow: inset 0 0 0 2px var(--color-primary, #1a56db);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-outline:hover {
+  background: var(--color-primary, #1a56db);
+  color: #ffffff;
+}
+
+/* --- Bloque 4: tecnología --- */
+
+/* Fondo de superficie para separar el bloque de soporte (blanco) del de
+   equipo (blanco): los fondos siguen alternando. */
+.tech {
+  background: var(--color-surface, #f6f8fb);
+}
+
+/* Seis columnas y tarjetas de dos: 3 arriba llenan la fila y las 2 de abajo
+   se centran empezando en la columna 2 y la 4. */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.5rem;
+  max-width: 1100px;
+  margin: 3rem auto 0;
+}
+
+.tech-item {
+  grid-column: span 2;
+}
+
+.tech-item:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+
+.tech-item:nth-child(5) {
+  grid-column: 4 / span 2;
+}
+
+.tech-item {
+  padding: 1.75rem 1.5rem;
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-top: 3px solid var(--color-primary, #1a56db);
+  border-radius: var(--radius, 12px);
+}
+
+/* Subtítulo + marca en la misma línea; en pantallas estrechas la marca baja
+   a la siguiente, centrada. */
+.tech-powered {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.65rem;
+}
+
+/* Píldora como .product-badge, pero en blanco con borde: acompaña al
+   subtítulo sin competir con el título de la sección. */
+/* El emblema va en un círculo pegado al borde izquierdo de la píldora, con el
+   mismo aire alrededor que arriba y abajo. */
+.tech-partner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.25rem 1rem 0.25rem 0.25rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-color: color-mix(in srgb, var(--color-primary, #1a56db) 25%, transparent);
+  border-radius: 999px;
+  color: var(--color-text, #111827);
+  font-weight: 600;
+  text-decoration: none;
+  transition: translate 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+a.tech-partner:hover {
+  translate: 0 -2px;
+  border-color: var(--color-primary, #1a56db);
+  box-shadow: 0 8px 18px -10px rgba(26, 86, 219, 0.45);
+  box-shadow: 0 8px 18px -10px color-mix(in srgb, var(--color-primary, #1a56db) 45%, transparent);
+}
+
+a.tech-partner:focus-visible {
+  outline: 2px solid var(--color-primary, #1a56db);
+  outline-offset: 3px;
+}
+
+/* El emblema tiene simetría de 90°: al pasar el ratón da un cuarto de vuelta
+   y termina igual que empezó, un guiño sin cambiar el aspecto. */
+.tech-partner-logo {
+  display: block;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: rotate 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+a.tech-partner:hover .tech-partner-logo {
+  rotate: 90deg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a.tech-partner:hover {
+    translate: none;
+  }
+
+  a.tech-partner:hover .tech-partner-logo {
+    rotate: none;
+  }
+}
+
+.tech-item h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.15rem;
+}
+
+.tech-item p {
+  color: var(--color-muted, #6b7280);
+  font-size: 0.95rem;
+}
+
+/* --- Bloque 5: equipo --- */
+
+.team-list {
+  display: grid;
+  gap: 2rem;
+  max-width: 820px;
+  margin: 3rem auto 0;
+}
+
+.team-member {
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 2.25rem;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius, 12px);
+}
+
+.team-photo {
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.team-photo.photo-placeholder {
+  font-size: 0.8rem;
+}
+
+.team-photo.photo-placeholder svg {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.team-text h3 {
+  font-size: 1.35rem;
+}
+
+.team-role {
+  margin: 0.25rem 0 0.9rem;
+  color: var(--color-primary, #1a56db);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.team-text p:last-child {
+  color: var(--color-muted, #6b7280);
+}
+
+/* --- Home en pantallas estrechas --- */
+
+@media (max-width: 768px) {
+  .intro {
+    padding: 3rem 0 4rem;
+  }
+
+  .intro-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    gap: 2.5rem;
+  }
+
+  .support-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    gap: 2.5rem;
+  }
+
+  /* En móvil, una sola columna: se anulan las posiciones de las tarjetas. */
+  .tech-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+  }
+
+  .tech-item,
+  .tech-item:nth-child(4),
+  .tech-item:nth-child(5) {
+    grid-column: auto;
+  }
+
+  .team-member {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 1.5rem;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .team-photo {
+    width: 10rem;
+  }
+}

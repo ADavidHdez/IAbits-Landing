@@ -15,7 +15,8 @@ edita el valor. No hace falta tocar plantillas, ni CSS, ni migrar.
 | Quiero cambiar… | Edita |
 |---|---|
 | Título/subtítulo/botón del hero | `HERO` |
-| Nombre del sitio, tagline, meta description | `SITE` |
+| `<title>` y meta description de la landing (también Open Graph) | `SITE` |
+| Nombre de marca, logo y sus medidas, imagen para redes | `BRAND` |
 | Título y subtítulo de la sección de servicios | `SERVICES_SECTION` |
 | Los servicios en sí | `SERVICES` (lista de `Service`) |
 | Bloques "por qué automatizar" | `VALUE_PROPS_SECTION`, `VALUE_PROPS` |

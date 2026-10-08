@@ -1,4 +1,180 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ site.title }}{% endblock %}
+
+{% block meta %}
+  {% include 'partials/seo-meta.html' %}
+{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+  :root {
+    --color-primary: {{ theme.color_primary }};
+    --color-primary-dark: {{ theme.color_primary_dark }};
+    --color-bg: {{ theme.color_bg }};
+    --color-surface: {{ theme.color_surface }};
+    --color-text: {{ theme.color_text }};
+    --color-muted: {{ theme.color_muted }};
+    --color-border: {{ theme.color_border }};
+    --radius: {{ theme.radius }};
+    --max-width: {{ theme.max_width }};
+  }
+</style>
+{% endblock %}
+
+{% block nav %}
+<header class="site-header">
+  <nav class="site-nav" aria-label="Principal">
+    <a class="site-nav-brand" href="{% url 'home:home' %}">
+      <img src="{% static brand.logo %}" alt="{{ nav.logo_alt }}" width="{{ brand.logo_width }}" height="{{ brand.logo_height }}" class="site-nav-logo">
+    </a>
+    <ul class="site-nav-links">
+      <li><a href="{% url 'home:home' %}" aria-current="page">{{ nav.home_text }}</a></li>
+    </ul>
+  </nav>
+</header>
+{% endblock %}
 
 {% block content %}
+<section class="intro" id="inicio">
+  <div class="container intro-grid">
+    <div class="intro-text">
+      <p class="eyebrow">{{ intro.eyebrow }}</p>
+      <h1>{{ intro.headline }}</h1>
+      {#<p class="intro-description">{{ intro.description }}</p>#}
+      <div class="intro-description">{{ intro.description|linebreaks }}</div>
+    </div>
+    {% if intro.photo %}
+      <img class="photo intro-photo" src="{% static intro.photo %}" alt="{{ intro.photo_alt }}">
+    {% else %}
+      <div class="photo photo-placeholder intro-photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <circle cx="12" cy="12" r="3.5"/>
+          <path d="M8 5l1.5-2h5L16 5"/>
+        </svg>
+        <span>{{ intro.photo_placeholder }}</span>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="products" id="servicios">
+  <div class="container">
+    <h2>{{ products_section.title }}</h2>
+    <p class="section-sub">{{ products_section.subtitle }}</p>
+    <div class="products-grid">
+      {% for product in products %}
+      <article class="product{% if product.featured %} product-featured{% endif %}">
+        {% if product.featured %}<p class="product-badge">{{ products_featured_label }}</p>{% endif %}
+        <h3>{{ product.name }}</h3>
+        <p class="product-summary">{{ product.summary }}</p>
+        <p class="product-price">
+          <span class="product-amount">{{ product.price }}</span>
+          <span class="product-price-note">{{ product.price_note }}</span>
+        </p>
+        <ul class="product-features">
+          {% for feature in product.features %}
+          <li>{{ feature }}</li>
+          {% endfor %}
+        </ul>
+        {% if contact.email %}
+        <a class="btn {% if product.featured %}btn-primary{% else %}btn-outline{% endif %}"
+           href="mailto:{{ contact.email }}?subject={{ product.name|urlencode }}">{{ product.cta_text }}</a>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="support" id="soporte">
+  <div class="container">
+    <h2>{{ support_section.title }}</h2>
+    <p class="section-sub">{{ support_section.subtitle }}</p>
+    <div class="support-grid">
+      {% for plan in support_plans %}
+      <article class="product{% if plan.featured %} product-featured{% endif %}">
+        {% if plan.featured %}<p class="product-badge">{{ products_featured_label }}</p>{% endif %}
+        <h3>{{ plan.name }}</h3>
+        <p class="product-summary">{{ plan.summary }}</p>
+        <p class="product-price">
+          <span class="product-amount">{{ plan.price }}</span>
+          <span class="product-price-note">{{ plan.price_note }}</span>
+        </p>
+        <ul class="product-features">
+          {% for feature in plan.features %}
+          <li>{{ feature }}</li>
+          {% endfor %}
+        </ul>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="tech" id="tecnologia">
+  <div class="container">
+    <h2>{{ tech_section.title }}</h2>
+    <p class="section-sub tech-powered">
+      <span>{{ tech_section.subtitle }}</span>
+      {% if tech_partner.url %}
+      <a class="tech-partner" href="{{ tech_partner.url }}" target="_blank" rel="noopener noreferrer">
+      {% else %}
+      <span class="tech-partner">
+      {% endif %}
+        {# El nombre ya va en texto: el emblema es decorativo y no se anuncia. #}
+        {% if tech_partner.logo %}<img class="tech-partner-logo" src="{% static tech_partner.logo %}" alt="" width="80" height="80">{% endif %}
+        <span>{{ tech_partner.name }}</span>
+        {% if tech_partner.url %}<span class="visually-hidden">{{ tech_partner.new_tab_label }}</span>{% endif %}
+      {% if tech_partner.url %}</a>{% else %}</span>{% endif %}
+    </p>
+    <div class="tech-grid">
+      {% for item in tech_items %}
+      <article class="tech-item">
+        <h3>{{ item.name }}</h3>
+        <p>{{ item.text }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="team" id="equipo">
+  <div class="container">
+    <h2>{{ team_section.title }}</h2>
+    <p class="section-sub">{{ team_section.subtitle }}</p>
+    <div class="team-list">
+      {% for member in team %}
+      <article class="team-member">
+        {% if member.photo %}
+          <img class="photo team-photo" src="{% static member.photo %}" alt="{{ member.name }}">
+        {% else %}
+          <div class="photo photo-placeholder team-photo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
+            </svg>
+            <span>{{ member.photo_placeholder }}</span>
+          </div>
+        {% endif %}
+        <div class="team-text">
+          <h3>{{ member.name }}</h3>
+          <p class="team-role">{{ member.role }}</p>
+          <p>{{ member.bio }}</p>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <p>{{ footer.text }}{% if contact.email %} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}{% if contact.phone %} · {{ contact.phone }}{% endif %}</p>
+  </div>
+</footer>
 {% endblock %}

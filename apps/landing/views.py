@@ -14,7 +14,7 @@ from django.views.generic import CreateView
 
 from apps.common.http import get_client_ip
 
-from . import chat, content, webhooks
+from . import chat, content, seo, webhooks
 from .forms import LeadForm
 from .models import ChatConversation, ChatMessage, Lead
 
@@ -53,6 +53,7 @@ class LandingView(CreateView):
         ctx.update(content.get_landing_context())
         ctx['chat_enabled'] = chat.is_enabled()
         ctx['chat_max_length'] = chat.MESSAGE_MAX_LENGTH
+        ctx['json_ld'] = seo.landing_json_ld(self.request)
         return ctx
 
     def form_valid(self, form):

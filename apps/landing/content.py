@@ -15,13 +15,35 @@ class Service:
     description: str
 
 
-SITE = {
+# Datos de marca comunes a todas las páginas (home, landing y login). Llegan a
+# las plantillas como `brand` por el context processor de apps/landing.
+# 'logo_width'/'logo_height' son las medidas reales del PNG: si se cambia el
+# logo, hay que actualizarlas para que el navegador reserve bien su hueco.
+BRAND = {
     'name': 'IAbits Studio',
-    'tagline': 'Automatización con IA para tu negocio',
+    'logo': 'img/logo-trimmed.png',
+    'logo_width': 434,
+    'logo_height': 321,
+    # PROVISIONAL: falta una imagen social propia de 1200×630; mientras, el logo.
+    'social_image': 'img/logo-trimmed.png',
+    'social_image_width': 434,
+    'social_image_height': 321,
+    'locale': 'es_ES',
+    'language': 'es-ES',
+    'area_served': 'España',
+    'currency': 'EUR',
+}
+
+# SEO de la landing: 'title' va al <title> y a Open Graph; 'meta_description'
+# a la meta description y a Open Graph. Título ≤ 60 caracteres, descripción
+# ≤ 158, o Google los corta.
+SITE = {
+    'name': BRAND['name'],
+    'title': 'Diagnóstico de procesos con IA para empresas | IAbits Studio',
     'meta_description': (
-        'Agencia de automatización con inteligencia artificial: agentes de '
-        'ventas, automatización de procesos, bases de conocimiento, webs y '
-        'redes sociales. Ahorra tiempo, dinero y personal.'
+        'Recupera horas cada mes automatizando ventas, procesos y conocimiento '
+        'interno con IA. Cuéntanos tu caso y te contactamos en menos de 24 h, '
+        'sin compromiso.'
     ),
 }
 
@@ -44,7 +66,7 @@ HERO = {
         'Automatizamos ventas, procesos y conocimiento interno para que tu '
         'equipo se dedique a lo que genera ingresos. Sin ampliar plantilla.'
     ),
-    'cta_text': 'Quiero mi diagnóstico gratuito',
+    'cta_text': 'Quiero mi diagnóstico',
     'cta_anchor': '#contacto',
 }
 
@@ -173,7 +195,7 @@ FORM_SECTION = {
     'title': 'Cuéntanos qué quieres automatizar',
     'subtitle': (
         'Déjanos tus datos y te contactamos antes de 24 horas, '
-        'sin ningun compromiso.'
+        'sin ningún compromiso.'
     ),
     'submit_text': 'Solicitar diagnóstico',
     'sending_text': 'Enviando…',

@@ -4,12 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Sitio{% endblock %}</title>
+  {% block canonical %}<link rel="canonical" href="{{ canonical_url }}">{% endblock %}
   {% block meta %}{% endblock %}
   {% load static %}
+  <link rel="icon" href="{% static 'img/favicon.png' %}" type="image/png" sizes="48x48">
   <link rel="stylesheet" href="{% static 'css/main.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
 <body>
+  {# Las páginas con su propia barra de navegación (la home) sobrescriben este bloque. #}
+  {% block nav %}
   <nav>
     {% comment %}
     logo-trimmed.png es logo.png sin el margen transparente que ocupaba el 63%
@@ -18,7 +22,7 @@
     El contenedor aporta el pseudo-elemento del destello, que un <img> no puede tener.
     {% endcomment %}
     <span class="logo-frame">
-      <img src="{% static 'img/logo-trimmed.png' %}" alt="Logo" class="logo">
+      <img src="{% static brand.logo %}" alt="{{ brand.name }}" width="{{ brand.logo_width }}" height="{{ brand.logo_height }}" class="logo">
     </span>
     {% comment %}
     <a href="{% url 'landing:home' %}">Inicio</a>
@@ -29,6 +33,7 @@
     {% endif %}
     {% endcomment %}
   </nav>
+  {% endblock %}
 
   {# Las páginas que colocan los mensajes en otro sitio sobrescriben este bloque. #}
   {% block messages %}{% include 'partials/messages.html' %}{% endblock %}

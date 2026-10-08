@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ site.name }} — {{ site.tagline }}{% endblock %}
+{% block title %}{{ site.title }}{% endblock %}
 
 {% block meta %}
-  <meta name="description" content="{{ site.meta_description }}">
+  {% include 'partials/seo-meta.html' %}
 {% endblock %}
 
 {% block extra_css %}
