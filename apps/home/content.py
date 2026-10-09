@@ -55,7 +55,7 @@ PRODUCTS = [
         'slug': 'diagnostico',
         'name': 'Diagnóstico',
         'summary': 'Analizamos tu negocio y te decimos qué automatizar primero.',
-        'price': '290 €',  # PROVISIONAL
+        'price': '150 €',  # PROVISIONAL
         'price_note': 'pago único',  # PROVISIONAL
         'features': [  # PROVISIONAL
             'Sesión de análisis',
@@ -65,13 +65,15 @@ PRODUCTS = [
             'Informe final con hoja de ruta',
         ],
         'cta_text': 'Solicitar diagnóstico',
+        # <h1> de /contacto/ cuando se llega desde este botón.
+        'contact_heading': 'Solicita tu diagnóstico',
         'featured': False,
     },
     {
         'slug': 'implementacion',
         'name': 'Implementación',
         'summary': 'Ponemos en marcha la automatización y la dejamos funcionando.',
-        'price': 'desde 1.500 €',  # PROVISIONAL
+        'price': 'desde 700 €',  # PROVISIONAL
         'price_note': 'según alcance',  # PROVISIONAL
         'features': [  # PROVISIONAL
             'Todo lo incluido en el Diagnóstico',
@@ -82,6 +84,7 @@ PRODUCTS = [
             'Se descontará el precio del Diagnóstico'
         ],
         'cta_text': 'Solicitar implementación',
+        'contact_heading': 'Solicita tu implementación',
         'featured': True,
     },
 ]
@@ -93,6 +96,8 @@ PRODUCTS_FEATURED_LABEL = 'El más completo'
 SUPPORT_SECTION = {
     'title': 'Soporte y mantenimiento',
     'subtitle': 'Realizamos el mantenimiento de tus automatizaciones y te damos soporte.',
+    # Botón bajo los planes: lleva a /contacto/ como petición de información.
+    'cta_text': 'Solicitar información',
 }
 
 SUPPORT_PLANS = [
@@ -100,7 +105,7 @@ SUPPORT_PLANS = [
             'slug': 'estandar',
             'name': 'Estándar',
             'summary': 'Lo mínimo para mantener tus automatizaciones funcionando.',
-            'price': '80 €',  # PROVISIONAL
+            'price': '59 €',  # PROVISIONAL
             'price_note': 'según alcance',  # PROVISIONAL
             'features': [  # PROVISIONAL
                 'Mantenimiento de tus automatizaciones base',
@@ -114,7 +119,7 @@ SUPPORT_PLANS = [
         'slug': 'premium', 
         'name': 'Premium', 
         'summary': 'Lo ideal para mantener tus automatizaciones sin preocupaciones', 
-        'price': '150 €',
+        'price': '99 €',
         'price_note': '/ mes', 
         'features': [
             'Mantenimiento de tus automatizaciones',
@@ -129,7 +134,7 @@ SUPPORT_PLANS = [
         'slug': 'advanced',  
         'name': 'Advanced', 
         'summary': 'La opción más completa para mantener tus automatizaciones al día', 
-        'price': '200 €', 
+        'price': '159 €', 
         'price_note': 
         '/ mes', 
         'features': [
@@ -225,6 +230,70 @@ FOOTER = {
     'text': '© 2026 IAbits Studio. Todos los derechos reservados.',
 }
 
+# Página de contacto (/contacto/): a ella llevan los botones de PRODUCTS y el
+# de SUPPORT_SECTION. SEO con las mismas reglas que SITE y distinto del de la
+# home y la landing; el <title> es fijo aunque el <h1> cambie según el botón.
+CONTACT_SITE = {
+    'name': BRAND['name'],
+    'title': 'Contacto: diagnóstico e implementación | IAbits Studio',
+    'meta_description': (
+        'Solicita tu diagnóstico o la implementación de automatizaciones con IA '
+        'para tu pyme. Te respondemos en menos de 24 horas y sin compromiso.'
+    ),
+}
+
+# El <h1> no está aquí: sale de 'contact_heading' de lo que se solicita
+# (PRODUCTS o INFO_REQUEST).
+CONTACT_FORM = {
+    'subtitle': (
+        'Déjanos tus datos y te contactamos antes de 24 horas, '
+        'sin ningún compromiso.'
+    ),
+    'submit_text': 'Enviar solicitud',
+    'sending_text': 'Enviando…',
+    'success_message': 'Gracias por tu solicitud. Te contactaremos en menos de 24 horas.',
+    'error_message': (
+        'No hemos podido enviar tu solicitud. Inténtalo de nuevo en unos minutos.'
+    ),
+    # Solo si alguien manipula el campo oculto del producto.
+    'invalid_request': (
+        'No hemos podido identificar qué solicitas. Vuelve a la página de inicio '
+        'y pulsa de nuevo el botón.'
+    ),
+}
+
+# Petición de información general: se solicita como un producto más, pero no
+# es una tarjeta con precio (no está en PRODUCTS ni en el JSON-LD de ofertas).
+# También es lo que se solicita al entrar en /contacto/ sin ?producto=.
+INFO_REQUEST = {
+    'slug': 'informacion',
+    'name': 'Información',
+    'contact_heading': 'Solicita información',
+}
+
+# (valor guardado en la BD, texto visible). El valor no puede pasar de 20
+# caracteres: es el max_length de Lead.contact_preference.
+CONTACT_PREFERENCES = [
+    ('email', 'Email'),
+    ('telefono', 'Teléfono'),
+    ('videollamada', 'Videollamada'),
+]
+
+
+def contact_requests():
+    """Lo que se puede solicitar en /contacto/: los productos y la información."""
+    return [*PRODUCTS, INFO_REQUEST]
+
+
+def get_contact_request(slug):
+    """Lo que se solicita con ?producto=<slug>; INFO_REQUEST si no existe."""
+    return next((r for r in contact_requests() if r['slug'] == slug), INFO_REQUEST)
+
+
+def product_choices():
+    """Choices para el campo 'producto' del formulario de contacto."""
+    return [(r['slug'], r['name']) for r in contact_requests()]
+
 
 def get_home_context():
     return {
@@ -237,11 +306,23 @@ def get_home_context():
         'products_featured_label': PRODUCTS_FEATURED_LABEL,
         'support_section': SUPPORT_SECTION,
         'support_plans': SUPPORT_PLANS,
+        'info_request': INFO_REQUEST,
         'tech_section': TECH_SECTION,
         'tech_items': TECH_ITEMS,
         'tech_partner': TECH_PARTNER,
         'team_section': TEAM_SECTION,
         'team': TEAM,
         'contact': CONTACT,
+        'footer': FOOTER,
+    }
+
+
+def get_contact_context():
+    return {
+        'site': CONTACT_SITE,
+        'theme': THEME,
+        'nav': NAV,
+        'contact': CONTACT,
+        'contact_form': CONTACT_FORM,
         'footer': FOOTER,
     }

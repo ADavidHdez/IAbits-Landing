@@ -80,10 +80,8 @@
           <li>{{ feature }}</li>
           {% endfor %}
         </ul>
-        {% if contact.email %}
         <a class="btn {% if product.featured %}btn-primary{% else %}btn-outline{% endif %}"
-           href="mailto:{{ contact.email }}?subject={{ product.name|urlencode }}">{{ product.cta_text }}</a>
-        {% endif %}
+           href="{% url 'home:contact' %}?producto={{ product.slug|urlencode }}">{{ product.cta_text }}</a>
       </article>
       {% endfor %}
     </div>
@@ -111,6 +109,9 @@
         </ul>
       </article>
       {% endfor %}
+    </div>
+    <div class="support-cta">
+      <a class="btn btn-outline" href="{% url 'home:contact' %}?producto={{ info_request.slug|urlencode }}">{{ support_section.cta_text }}</a>
     </div>
   </div>
 </section>

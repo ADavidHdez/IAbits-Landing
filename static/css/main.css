@@ -37,7 +37,9 @@ h1, h2, h3 {
   letter-spacing: -0.02em;
 }
 
-h2 {
+/* El h1 de la página de contacto se ve como un h2 de sección. */
+h2,
+.contact h1 {
   font-size: 2rem;
   text-align: center;
 }
@@ -960,7 +962,8 @@ nav a:hover {
     height: 8rem;
   }
 
-  h2 {
+  h2,
+  .contact h1 {
     font-size: 1.6rem;
   }
 
@@ -1615,6 +1618,13 @@ nav a:hover {
   margin: 3rem auto 0;
 }
 
+/* Botón "Solicitar información" bajo los planes. La separación con el bloque
+   de tecnología la pone el padding inferior de la sección. */
+.support-cta {
+  margin-top: 3rem;
+  text-align: center;
+}
+
 /* Columna flexible: el botón se queda abajo aunque una tarjeta tenga menos
    características que la otra. */
 .product {
@@ -1766,6 +1776,23 @@ nav a:hover {
   border: 1px solid var(--color-border, #e5e7eb);
   border-top: 3px solid var(--color-primary, #1a56db);
   border-radius: var(--radius, 12px);
+  /* La subida usa una curva de despegue (arranca rápido y frena suave); el
+     borde y la luz, la misma transición que .prop. */
+  transition:
+    translate 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* Levitación: igual que .prop:hover de la landing (elevación, borde y luz de
+   fondo), pero sin balanceo: sube y se queda arriba mientras dura el hover.
+   :active cubre el toque en pantallas táctiles, donde no hay hover. */
+.tech-item:hover,
+.tech-item:active {
+  translate: 0 -6px;
+  border-color: var(--color-primary, #1a56db);
+  box-shadow: 0 12px 24px -12px rgba(26, 86, 219, 0.45);
+  box-shadow: 0 12px 24px -12px color-mix(in srgb, var(--color-primary, #1a56db) 45%, transparent);
 }
 
 /* Subtítulo + marca en la misma línea; en pantallas estrechas la marca baja
@@ -1828,6 +1855,12 @@ a.tech-partner:hover .tech-partner-logo {
 
 @media (prefers-reduced-motion: reduce) {
   a.tech-partner:hover {
+    translate: none;
+  }
+
+  /* Como .prop: se conservan el borde y la luz; se elimina la levitación. */
+  .tech-item:hover,
+  .tech-item:active {
     translate: none;
   }
 

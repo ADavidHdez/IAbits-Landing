@@ -55,20 +55,31 @@ def is_enabled() -> bool:
 def build_payload(lead) -> dict:
     """Cuerpo JSON que recibe n8n. Los nombres son estables: si cambian, hay
     que actualizar también el workflow de n8n que los consume."""
+    from apps.home import content as home_content
+
     from . import content
 
     services = dict(content.service_choices())
+    products = dict(home_content.product_choices())
+    preferences = dict(home_content.CONTACT_PREFERENCES)
     return {
         'event': 'lead.created',
         'source': settings.N8N_WEBHOOK_SOURCE,
         'sent_at': timezone.now().isoformat(),
         'lead': {
             'id': str(lead.id),
+            # Página donde se rellenó el formulario: 'landing' o 'contacto'.
+            'origin': lead.source,
             'name': lead.name,
             'email': lead.email,
+            'phone': lead.phone,
             'company': lead.company,
             'service_interest': lead.service_interest,
             'service_label': services.get(lead.service_interest, ''),
+            'product': lead.product,
+            'product_label': products.get(lead.product, ''),
+            'contact_preference': lead.contact_preference,
+            'contact_preference_label': preferences.get(lead.contact_preference, ''),
             'message': lead.message,
             'ip_address': lead.ip_address,
             'user_agent': lead.user_agent,

@@ -45,7 +45,7 @@ class RobotsTxtTests(TestCase):
 
 
 class SitemapTests(TestCase):
-    def test_lista_home_y_landing_con_urls_absolutas(self):
+    def test_lista_las_paginas_publicas_con_urls_absolutas(self):
         response = self.client.get('/sitemap.xml')
         self.assertEqual(response.status_code, 200)
         ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
@@ -54,6 +54,7 @@ class SitemapTests(TestCase):
         self.assertEqual(
             locs,
             ['http://testserver' + reverse('home:home'),
+             'http://testserver' + reverse('home:contact'),
              'http://testserver' + reverse('landing:home')],
         )
 
@@ -69,23 +70,24 @@ class FaviconTests(TestCase):
         self.assertTrue(response['Location'].endswith('img/favicon.ico'))
 
     def test_las_paginas_declaran_su_icono(self):
-        for url in (reverse('home:home'), reverse('landing:home')):
+        for url in (reverse('home:home'), reverse('home:contact'), reverse('landing:home')):
             self.assertContains(self.client.get(url), 'rel="icon"')
 
 
 class PublicPagesSeoTests(TestCase):
-    """Comprobaciones comunes a la home y la landing."""
+    """Comprobaciones comunes a la home, la página de contacto y la landing."""
 
     pages = (
         ('home:home', home_content.SITE),
+        ('home:contact', home_content.CONTACT_SITE),
         ('landing:home', landing_content.SITE),
     )
 
     def test_titulos_y_descripciones_distintos_entre_paginas(self):
-        self.assertNotEqual(home_content.SITE['title'], landing_content.SITE['title'])
-        self.assertNotEqual(
-            home_content.SITE['meta_description'], landing_content.SITE['meta_description']
-        )
+        titles = [site['title'] for _, site in self.pages]
+        descriptions = [site['meta_description'] for _, site in self.pages]
+        self.assertEqual(len(set(titles)), len(titles))
+        self.assertEqual(len(set(descriptions)), len(descriptions))
 
     def test_longitudes_de_titulo_y_descripcion(self):
         """Por encima de estos límites Google corta el texto en los resultados."""
@@ -180,6 +182,16 @@ class LandingJsonLdTests(TestCase):
         self.assertEqual(page['url'], 'http://testserver' + reverse('landing:home'))
         self.assertEqual(page['name'], landing_content.SITE['title'])
         self.assertEqual(page['about']['@id'], nodes['Organization']['@id'])
+
+
+class ContactJsonLdTests(TestCase):
+    def test_pagina_de_contacto_de_la_organizacion(self):
+        data = extract_json_ld(self.client.get(reverse('home:contact')))
+        nodes = {node['@type']: node for node in data['@graph']}
+        page = nodes['ContactPage']
+        self.assertEqual(page['url'], 'http://testserver' + reverse('home:contact'))
+        self.assertEqual(page['name'], home_content.CONTACT_SITE['title'])
+        self.assertEqual(page['about']['@id'], nodes['ProfessionalService']['@id'])
 
 
 class JsonLdHelperTests(SimpleTestCase):

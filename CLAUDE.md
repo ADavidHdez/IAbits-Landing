@@ -1,117 +1,135 @@
-# CLAUDE.md — IAbits Landing
+# CLAUDE.md — IAbits Studio
 
-Web de **IAbits Studio** (agencia de automatización con IA): una home de presentación
-en `/` y una landing de captación en `/landing/`, sin enlaces entre ellas.
-La landing capta leads por formulario → los guarda en BD → los reenvía a n8n por webhook.
+Website for **IAbits Studio** (AI automation agency), live at `https://iabits.tech`.
+Two independent sites with no links between them:
 
-**Django 6 · Python 3.13 · SQLite (dev) / Postgres (prod) · Docker + Easypanel**
+- `/` — company home (intro, products, support plans, tech, team). Its product buttons
+  and the support "Solicitar información" button lead to `/contacto/?producto=<slug>`, a
+  contact page with its own form (`ContactForm`). The slug sets the `<h1>` and a hidden,
+  server-validated `product` field (`content.contact_requests()`: `PRODUCTS` + `INFO_REQUEST`,
+  the fallback when the slug is missing or unknown).
+- `/landing/` — lead-capture landing: form → DB → n8n webhook, plus an optional AI chat widget.
 
-> **Idioma**: contenido de cara al usuario, comentarios del código, docstrings y
-> mensajes de commit **en español**.
+Both forms save a `Lead`; `Lead.source` (`landing` / `contacto`) tells them apart.
 
----
+**Django 6.0 · Python 3.13 · SQLite (dev) / Postgres (prod) · WhiteNoise · Gunicorn · Docker on Easypanel (auto-deploys from `master`)**
 
-## Reglas que no se negocian
-
-1. **No tocar diseño ni estilo salvo petición explícita.** Si una tarea es de backend,
-   `main.css`, los `.js` de animación y la estructura de `landing.html` se quedan como están.
-2. **`apps/landing/content.py` es la única fuente** de textos, colores, servicios y datos
-   de contacto. Nunca escribas texto literal en una plantilla ni un color en el CSS.
-3. **CSP estricta** (`SECURE_CSP` en `config/settings/base.py`): prohibido JS inline,
-   `onclick=`, CSS inline y recursos externos (CDN, Google Fonts). El único inline
-   permitido es el `<style>` del tema, que va con nonce.
-4. **Nada de secretos en el repo.** Todo por variables de entorno vía `python-decouple`.
-5. **Tests con cada cambio de lógica**: `python manage.py test apps` (125 en verde hoy).
-6. Sin dependencias nuevas salvo necesidad real — la stack es deliberadamente pequeña.
+> **Language**: user-facing content, code comments, docstrings and commit messages are
+> written in **Spanish**.
 
 ---
 
-## Mapa del código
+## Non-negotiable rules
 
-| Ruta | Qué es | Cuándo tocarlo |
+1. **Don't touch design or styling unless explicitly asked.** On backend tasks,
+   `main.css`, `static/js/*` and the template structure stay as they are.
+2. **`content.py` is the single source** of copy, colours, services and contact data.
+   `apps/landing/content.py` owns the shared `BRAND`, `THEME` and `CONTACT`;
+   `apps/home/content.py` holds the home copy and imports those. Never hardcode text in
+   a template or a colour in CSS.
+3. **Strict CSP** (`SECURE_CSP` in `config/settings/base.py`): no inline JS, no
+   `onclick=`, no inline CSS, no external resources (CDNs, Google Fonts). The only inline
+   allowed is the theme `<style>`, which carries a nonce.
+4. **No secrets in the repo.** Everything goes through env vars via `python-decouple`
+   (template: `.env.example`).
+5. **Tests with every logic change**: `python manage.py test apps` (145 passing, Oct 2026).
+6. No new dependencies without a real need — the stack is deliberately small.
+
+---
+
+## Code map
+
+| Path | What it is | Touch it when |
 |---|---|---|
-| `apps/landing/content.py` | **Textos, colores, servicios, contacto** | Cambiar cualquier copy o color |
-| `apps/landing/models.py` | `Lead` (UUID pk), `ChatConversation` y `ChatMessage` | Nuevo campo → requiere migración |
-| `apps/landing/forms.py` | `LeadForm` + honeypot `website` | Cambiar campos del formulario |
-| `apps/landing/views.py` | `LandingView` (CreateView): honeypot, throttle, AJAX/JSON · `ChatView` (`POST /landing/chat/`) | Lógica de envío y del chat |
-| `apps/landing/webhooks.py` | Envío del lead a n8n (stdlib `urllib`, hilo aparte) | Integración n8n |
-| `apps/landing/chat.py` | Llamada síncrona al agente de IA de n8n para el chat | Integración del chat |
-| `apps/landing/admin.py` | Tabla de leads + acción "Reenviar a n8n" · conversaciones del chat (solo lectura) | Panel `/admin/` |
-| `apps/landing/templates/landing/partials/chat-widget.html` | HTML del chat flotante (se incluye solo si el chat está activo) | Estructura del chat |
-| `apps/landing/templates/landing/landing.html` | La landing entera (175 líneas) | Estructura de secciones |
-| `apps/home/` | Web home (`HomeView`, `TemplateView`) con su plantilla `home/home.html`. Sin modelos. Textos en `apps/home/content.py` (comparte `THEME` y `CONTACT` con la landing) | Presentación de la empresa |
-| `templates/base.html` | Molde: `<head>`, nonce, variables CSS del tema | Rara vez |
-| `static/css/main.css` | Todo el estilo (839 líneas, usa `var(--…)`) | Solo en tareas de diseño |
-| `static/js/*.js` | `lead-form` (AJAX), `chat`, `reveal`, `cards-3d`, `confetti`, `timeline` | Solo en tareas de diseño |
-| `apps/accounts/` | `User` custom (`AbstractUser`), `LoginAttempt` y `ThrottledLoginView`. Solo staff, sin registro público | Casi nunca |
-| `apps/common/http.py` | `get_client_ip()`: IP real del visitante a prueba de cabeceras falsas | Nada que dependa de la IP |
-| `apps/common/{seo,views,sitemaps,context_processors}.py` | SEO técnico: canónica, `json_ld()` seguro para HTML, `robots.txt`, `sitemap.xml`, redirección de `/favicon.ico` | Nueva página indexable → añadirla a `StaticViewSitemap` |
-| `apps/{landing,home}/seo.py` | JSON-LD (schema.org) de cada página, generado en Python | Cambian datos de la organización u ofertas |
-| `templates/partials/seo-meta.html` | Meta description, Open Graph, Twitter Card y JSON-LD (lee `site.title`/`site.meta_description`) | Rara vez |
-| `config/settings/{base,development,production}.py` | Configuración por entorno | Nueva variable de entorno |
-| `n8n/lead-webhook.workflow.json` | Workflow importable en n8n | Cambia el payload del webhook |
-| `n8n/chat-agent.workflow.json` | Workflow del agente de IA del chat (prompt de sistema incluido) | Cambia el payload o el comportamiento del agente |
+| `apps/landing/content.py` | Landing copy, `SERVICES`, `CHAT`, plus shared `BRAND`/`THEME`/`CONTACT` | Changing landing copy or any colour |
+| `apps/home/content.py` | Home copy: `PRODUCTS`, `SUPPORT_PLANS`, `TECH_ITEMS`, `TEAM`… · contact page: `CONTACT_SITE`, `CONTACT_FORM`, `CONTACT_PREFERENCES`, `INFO_REQUEST`, `contact_requests()`, `product_choices()` | Changing home copy |
+| `apps/landing/models.py` | `Lead` (UUID pk, `source`), `ChatConversation`, `ChatMessage` | New field → migration |
+| `apps/landing/forms.py` | `BaseLeadForm` (`website` honeypot + message length) → `LeadForm` (landing) and `ContactForm` (`/contacto/`) | Form fields |
+| `apps/landing/views.py` | `LeadSubmitMixin` (honeypot, shared per-IP throttle, AJAX/JSON, sets `source`) · `LandingView` · `ChatView` (`POST /landing/chat/`) | Submit and chat logic |
+| `apps/landing/webhooks.py` | Sends the lead to n8n (stdlib `urllib`, background thread) | n8n lead integration |
+| `apps/landing/chat.py` | Synchronous call to the n8n AI agent | Chat integration |
+| `apps/landing/admin.py` | Leads table + "Reenviar a n8n" action · read-only chat conversations | `/admin/` panel |
+| `apps/landing/templates/landing/` | `landing.html` + `partials/chat-widget.html` (only included when chat is enabled) | Section structure |
+| `apps/home/` | `HomeView` (TemplateView) + `home/home.html` · `ContactView` (`LeadSubmitMixin` + CreateView) + `home/contact.html`. No models of its own | Company presentation, contact page |
+| `apps/accounts/` | Custom `User`, `LoginAttempt`, `ThrottledLoginView`. Staff only, no sign-up | Rarely |
+| `apps/common/http.py` | `get_client_ip()`: spoof-proof visitor IP | Anything IP-based |
+| `apps/common/{seo,views,sitemaps,context_processors}.py` | Canonical URL, HTML-safe `json_ld()`, `robots.txt`, `sitemap.xml`, `/favicon.ico` redirect | New indexable page → add it to `StaticViewSitemap` |
+| `apps/{landing,home}/seo.py` | Per-page JSON-LD (schema.org), built in Python | Organization or offer data changes |
+| `templates/base.html` | Layout: `<head>`, nonce, theme CSS variables | Rarely |
+| `templates/partials/seo-meta.html` | Meta description, Open Graph, Twitter Card, JSON-LD | Rarely |
+| `static/css/main.css` | All styling (uses `var(--…)`) | Design tasks only |
+| `static/js/*.js` | `lead-form` (AJAX), `chat`, `reveal`, `cards-3d`, `confetti`, `timeline` — landing; `lead-form` + `confetti` also on `/contacto/` | Design tasks only |
+| `config/settings/{base,development,production}.py` | Per-environment settings | New env var |
+| `requirements/{base,development,production}.txt` | Dependencies (`factory-boy` dev-only; `gunicorn`, `psycopg2`, `dj-database-url` prod-only) | New dependency |
+| `n8n/*.workflow.json` | Importable n8n workflows: lead webhook and chat agent (system prompt included) | Payload or agent behaviour changes |
 
-**URLs**: `/` → home · `/landing/` → landing · `/landing/chat/` (POST JSON) · `/accounts/login/` · `/robots.txt` · `/sitemap.xml` · `/favicon.ico` · admin en `settings.ADMIN_URL` (secreto en prod; **nunca** en `robots.txt`).
-
----
-
-## Invariantes que se rompen fácil
-
-- **Tema → CSS**: `content.THEME` se inyecta como variables CSS en `base.html`; `main.css`
-  las consume con `var(--color-primary, #fallback)`. Cambiar un color = editar `content.py`.
-- **Servicios**: `content.service_choices()` alimenta el `<select>` del formulario. Añadir
-  un servicio en `SERVICES` actualiza la web y el formulario **sin migración**.
-- **Formulario, tres capas de defensa**: honeypot `website` (finge éxito), throttle por IP
-  respaldado en BD (`LEAD_THROTTLE_*`, funciona con varios workers) y CSRF.
-- **IP del visitante**: siempre vía `apps.common.http.get_client_ip()`. Coge la **última**
-  entrada de `X-Forwarded-For` (la que añade el proxy; las anteriores las controla el
-  cliente) y la valida. Leer la cabecera a mano reabre un bypass del throttle.
-- **Login**: `/accounts/login/` corta a los `LOGIN_THROTTLE_MAX` fallos por IP y responde
-  429. Los fallos los apunta la señal `user_login_failed` en `LoginAttempt`.
-- **AJAX con degradación**: `lead-form.js` envía por `fetch` con `X-Requested-With`; la
-  vista responde JSON. Sin JS, POST clásico + Post/Redirect/Get. **Mantén ambos caminos.**
-- **Webhook**: se dispara en `transaction.on_commit` y en un hilo daemon. El lead se guarda
-  **siempre** primero; si n8n falla, se loguea y se reintenta desde el admin. Nunca bloquear
-  la respuesta al visitante.
-- **Chat**: el widget solo se renderiza si `N8N_CHAT_WEBHOOK_URL` es válida y llega con
-  `hidden` (sin JS no aparece). A diferencia del webhook de leads, la llamada a n8n es
-  **síncrona** (el visitante espera la respuesta); por eso gunicorn corre con `--threads`.
-  La memoria de la conversación es la BD: Django manda el historial en cada petición.
-  El throttle cuenta por IP de quien envía cada mensaje, no por la de la conversación.
-  Las respuestas del agente se pintan con `textContent`, nunca `innerHTML`.
-- **SEO**: `title` y `meta_description` de cada página viven en su `SITE` (≤ 60 y ≤ 158
-  caracteres; un test lo vigila) y alimentan `<title>`, meta, Open Graph y JSON-LD.
-  Los datos de marca comunes (nombre, logo y sus medidas, imagen social) están en
-  `BRAND` de `apps/landing/content.py` y llegan a toda plantilla por context processor.
-  Ninguna URL absoluta lleva dominio fijo: todo sale de la petición.
-- **Arranque en producción**: el `CMD` del Dockerfile corre `migrate` → `collectstatic` →
-  `check --deploy --fail-level ERROR` → gunicorn. **Un check en ERROR impide arrancar.**
+**URLs**: `/` · `/contacto/` · `/landing/` · `/landing/chat/` (POST JSON) · `/accounts/login/` · `/robots.txt` ·
+`/sitemap.xml` · `/favicon.ico` · admin at `settings.ADMIN_URL` (secret in prod; **never**
+in `robots.txt`).
 
 ---
 
-## Comandos
+## Easy-to-break invariants
+
+- **Theme → CSS**: `THEME` is injected as CSS variables in `base.html`; `main.css` reads
+  them as `var(--color-primary, #fallback)`. Changing a colour = editing `content.py`.
+- **Services**: `content.service_choices()` feeds the form `<select>`. Adding to
+  `SERVICES` updates page and form **without a migration**.
+- **Lead form, three defence layers**: `website` honeypot (fakes success), DB-backed
+  per-IP throttle (`LEAD_THROTTLE_*`, safe across workers) and CSRF.
+- **Visitor IP**: always via `apps.common.http.get_client_ip()` — it takes the entry
+  added by our proxy (`TRUSTED_PROXY_DEPTH`) and validates it. Reading
+  `X-Forwarded-For` by hand reopens a throttle bypass.
+- **Login**: `/accounts/login/` returns 429 after `LOGIN_THROTTLE_MAX` failures per IP,
+  recorded in `LoginAttempt` by the `user_login_failed` signal.
+- **AJAX with graceful degradation**: `lead-form.js` posts via `fetch` with
+  `X-Requested-With` and gets JSON; without JS it's a classic POST + Post/Redirect/Get.
+  **Keep both paths.**
+- **Lead webhook**: fired on `transaction.on_commit` in a daemon thread. The lead is
+  **always** saved first; if n8n fails it's logged and can be resent from the admin.
+  Never block the visitor's response.
+- **Chat**: rendered only if `N8N_CHAT_WEBHOOK_URL` is valid, and ships `hidden` (no JS,
+  no chat). The n8n call is **synchronous** (`N8N_CHAT_TIMEOUT` < gunicorn's 60 s), hence
+  gunicorn's `--threads`. Conversation memory is the DB: Django sends the full history on
+  each request. Throttle (`CHAT_THROTTLE_*`) counts the sender's IP per message. Agent
+  replies are rendered with `textContent`, never `innerHTML`.
+- **SEO**: each page's `title` / `meta_description` live in its `SITE` dict (≤ 60 / ≤ 158
+  chars, enforced by a test) and feed `<title>`, meta, Open Graph and JSON-LD. `BRAND`
+  reaches every template through `apps.landing.context_processors.brand`. No absolute
+  URL hardcodes a domain: everything is built from the request.
+- **Production boot**: the Dockerfile `CMD` runs `migrate` → `collectstatic` →
+  `check --deploy --fail-level ERROR` → gunicorn. **An ERROR-level check blocks startup.**
+
+---
+
+## Commands
 
 ```bash
-python manage.py runserver              # dev (usa config.settings.development)
-python manage.py test apps              # suite completa
+pip install -r requirements/development.txt
+python manage.py runserver                     # dev (config.settings.development)
+python manage.py test apps                     # full suite
 python manage.py makemigrations landing
-python manage.py check --deploy         # antes de desplegar
+python manage.py makemigrations --check --dry-run
+python manage.py check --deploy                # before deploying
 ```
 
-En Windows el intérprete del venv es `.venv/Scripts/python.exe`.
+On Windows the venv interpreter is `.venv/Scripts/python.exe`.
+
+**Claude Code tooling** (`.claude/`): commands `/deploy-check`, `/nuevo-servicio`,
+`/nueva-seccion`, `/revisar-diseno`; skills `copy-iabits` (landing copy) and `seo-audit`.
+`settings.json` pre-approves read-only git, `test`, `check` and `makemigrations --check`.
 
 ---
 
-## Documentación por temas — léela solo si la tarea lo pide
+## Topic docs — read only when the task needs them
 
-| Archivo | Cuándo abrirlo |
+| File | Open it for |
 |---|---|
-| [docs/arquitectura.md](docs/arquitectura.md) | Flujo completo de una petición, decisiones de diseño y por qué |
-| [docs/contenido-y-estilo.md](docs/contenido-y-estilo.md) | Editar textos, colores, secciones o animaciones |
-| [docs/integraciones.md](docs/integraciones.md) | Webhook n8n: payload, variables, Airtable/Telegram · chat con el agente de IA |
-| [docs/despliegue.md](docs/despliegue.md) | Easypanel, Docker, variables de entorno, checklist de deploy |
-| [docs/convenciones.md](docs/convenciones.md) | Estilo de código y patrones Django aplicables aquí |
+| [docs/arquitectura.md](docs/arquitectura.md) | Full request flow, design decisions and their rationale |
+| [docs/contenido-y-estilo.md](docs/contenido-y-estilo.md) | Editing copy, colours, sections or animations |
+| [docs/integraciones.md](docs/integraciones.md) | n8n webhook (payload, env vars, Airtable/Telegram) · AI chat agent |
+| [docs/despliegue.md](docs/despliegue.md) | Easypanel, Docker, env vars, deploy checklist |
+| [docs/convenciones.md](docs/convenciones.md) | Code style and Django patterns used here |
 
-`notas-aprendizaje.md` (gitignored) son apuntes personales del dueño del repo: sirve de
-contexto histórico, **no lo edites** salvo que te lo pidan.
+`notas-aprendizaje.md` (gitignored) holds the repo owner's personal notes: historical
+context only — **don't edit it** unless asked.

@@ -39,3 +39,12 @@ def home_json_ld(request) -> str:
         '@context': 'https://schema.org',
         '@graph': [business, website, web_page(request, content.SITE)],
     })
+
+
+def contact_json_ld(request) -> str:
+    page = web_page(request, content.CONTACT_SITE)
+    page['@type'] = 'ContactPage'
+    return json_ld({
+        '@context': 'https://schema.org',
+        '@graph': [organization(request, schema_type='ProfessionalService'), page],
+    })

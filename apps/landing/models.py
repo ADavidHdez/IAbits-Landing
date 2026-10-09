@@ -4,11 +4,23 @@ from django.db import models
 
 
 class Lead(models.Model):
+    class Source(models.TextChoices):
+        LANDING = 'landing', 'landing'
+        CONTACT = 'contacto', 'página de contacto'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Con el default, los leads ya guardados y los de la landing quedan como
+    # 'landing' sin tocar LandingView.
+    source = models.CharField('origen', max_length=20, choices=Source.choices, default=Source.LANDING)
     name = models.CharField('nombre', max_length=120)
     email = models.EmailField('email')
+    phone = models.CharField('teléfono', max_length=20, blank=True)
     company = models.CharField('empresa', max_length=120, blank=True)
+    # Sin choices, igual que service_interest: las opciones salen de content.py
+    # y añadir una no exige migración.
     service_interest = models.CharField('servicio de interés', max_length=60, blank=True)
+    product = models.CharField('producto', max_length=60, blank=True)
+    contact_preference = models.CharField('preferencia de contacto', max_length=20, blank=True)
     message = models.TextField('mensaje', blank=True)
     ip_address = models.GenericIPAddressField('IP de origen', null=True, blank=True)
     user_agent = models.CharField('user agent', max_length=255, blank=True)

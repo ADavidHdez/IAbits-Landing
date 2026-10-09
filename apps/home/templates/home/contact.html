@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ site.title }}{% endblock %}
+
+{% block meta %}
+  {% include 'partials/seo-meta.html' %}
+{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+  :root {
+    --color-primary: {{ theme.color_primary }};
+    --color-primary-dark: {{ theme.color_primary_dark }};
+    --color-bg: {{ theme.color_bg }};
+    --color-surface: {{ theme.color_surface }};
+    --color-text: {{ theme.color_text }};
+    --color-muted: {{ theme.color_muted }};
+    --color-border: {{ theme.color_border }};
+    --radius: {{ theme.radius }};
+    --max-width: {{ theme.max_width }};
+  }
+</style>
+{% endblock %}
+
+{% block nav %}
+<header class="site-header">
+  <nav class="site-nav" aria-label="Principal">
+    <a class="site-nav-brand" href="{% url 'home:home' %}">
+      <img src="{% static brand.logo %}" alt="{{ nav.logo_alt }}" width="{{ brand.logo_width }}" height="{{ brand.logo_height }}" class="site-nav-logo">
+    </a>
+    <ul class="site-nav-links">
+      <li><a href="{% url 'home:home' %}">{{ nav.home_text }}</a></li>
+    </ul>
+  </nav>
+</header>
+{% endblock %}
+
+{# Los mensajes se muestran junto al formulario, no en la cabecera. #}
+{% block messages %}{% endblock %}
+
+{% block content %}
+<section class="contact" id="contacto">
+  <div class="container container-narrow">
+    <h1>{{ contact_request.contact_heading }}</h1>
+    <p class="section-sub">{{ contact_form.subtitle }}</p>
+    {# Mismo contrato que el formulario de la landing: lo envía static/js/lead-form.js. #}
+    <form method="post" novalidate data-lead-form data-error-message="{{ contact_form.error_message }}">
+      {% csrf_token %}
+      {# El producto va oculto y sin data-field: sus errores salen aquí, arriba. #}
+      <div data-form-errors>{{ form.non_field_errors }}{{ form.product.errors }}</div>
+      {{ form.website }}
+      {{ form.product }}
+      <div class="form-field" data-field="name">
+        {{ form.name.label_tag }}
+        {{ form.name }}
+        {{ form.name.errors }}
+      </div>
+      <div class="form-field" data-field="email">
+        {{ form.email.label_tag }}
+        {{ form.email }}
+        {{ form.email.errors }}
+      </div>
+      <div class="form-field" data-field="phone">
+        {{ form.phone.label_tag }}
+        {{ form.phone }}
+        {{ form.phone.errors }}
+      </div>
+      <div class="form-field" data-field="company">
+        {{ form.company.label_tag }}
+        {{ form.company }}
+        {{ form.company.errors }}
+      </div>
+      <div class="form-field" data-field="contact_preference">
+        {{ form.contact_preference.label_tag }}
+        {{ form.contact_preference }}
+        {{ form.contact_preference.errors }}
+      </div>
+      <div class="form-field" data-field="message">
+        {{ form.message.label_tag }}
+        {{ form.message }}
+        {{ form.message.errors }}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" data-sending-text="{{ contact_form.sending_text }}">{{ contact_form.submit_text }}</button>
+      </div>
+    </form>
+
+    {# Destino del mensaje de confirmación: servidor (sin JS) y fetch() (con JS). #}
+    <div class="form-feedback" role="status" aria-live="polite" data-form-feedback>
+      {% include 'partials/messages.html' %}
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <p>{{ footer.text }}{% if contact.email %} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}{% if contact.phone %} · {{ contact.phone }}{% endif %}</p>
+  </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/confetti.js' %}" defer></script>
+<script src="{% static 'js/lead-form.js' %}" defer></script>
+{% endblock %}

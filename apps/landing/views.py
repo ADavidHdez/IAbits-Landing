@@ -23,10 +23,18 @@ logger = logging.getLogger('apps.landing')
 THROTTLE_MESSAGE = 'Has enviado demasiadas solicitudes. Inténtalo de nuevo más tarde.'
 
 
-class LandingView(CreateView):
+class LeadSubmitMixin:
+    """Envío de un formulario que crea un Lead: lo comparten la landing y la
+    página de contacto de la home.
+
+    Cada vista indica de dónde viene el lead (`lead_source`), qué mensaje de
+    éxito mostrar (`success_message`) y a dónde volver sin JS (`get_success_url`).
+    El throttle cuenta los leads de la IP en las dos páginas juntas.
+    """
+
     model = Lead
-    form_class = LeadForm
-    template_name = 'landing/landing.html'
+    lead_source = Lead.Source.LANDING
+    success_message = ''
 
     def post(self, request, *args, **kwargs):
         self.object = None
@@ -48,15 +56,9 @@ class LandingView(CreateView):
 
         return super().post(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx.update(content.get_landing_context())
-        ctx['chat_enabled'] = chat.is_enabled()
-        ctx['chat_max_length'] = chat.MESSAGE_MAX_LENGTH
-        ctx['json_ld'] = seo.landing_json_ld(self.request)
-        return ctx
-
     def form_valid(self, form):
+        # El origen lo fija la vista, no el formulario: así no se puede falsear.
+        form.instance.source = self.lead_source
         form.instance.ip_address = get_client_ip(self.request)
         form.instance.user_agent = self.request.META.get('HTTP_USER_AGENT', '')[:255]
         response = super().form_valid(form)
@@ -64,11 +66,8 @@ class LandingView(CreateView):
         # conexión, así que la fila tiene que estar ya confirmada en la BD.
         transaction.on_commit(lambda: webhooks.send_lead_async(self.object))
         if self.is_ajax:
-            return JsonResponse({
-                'ok': True,
-                'message': content.FORM_SECTION['success_message'],
-            })
-        messages.success(self.request, content.FORM_SECTION['success_message'])
+            return JsonResponse({'ok': True, 'message': self.success_message})
+        messages.success(self.request, self.success_message)
         return response
 
     def form_invalid(self, form):
@@ -81,11 +80,8 @@ class LandingView(CreateView):
 
     def fake_success(self):
         if self.is_ajax:
-            return JsonResponse({
-                'ok': True,
-                'message': content.FORM_SECTION['success_message'],
-            })
-        messages.success(self.request, content.FORM_SECTION['success_message'])
+            return JsonResponse({'ok': True, 'message': self.success_message})
+        messages.success(self.request, self.success_message)
         return redirect(self.get_success_url())
 
     def throttled_response(self):
@@ -97,9 +93,6 @@ class LandingView(CreateView):
         messages.error(self.request, THROTTLE_MESSAGE)
         return redirect(self.get_success_url())
 
-    def get_success_url(self):
-        return reverse('landing:home') + '#contacto'
-
     @property
     def is_ajax(self) -> bool:
         """El formulario se envía por fetch() desde static/js/lead-form.js.
@@ -108,6 +101,24 @@ class LandingView(CreateView):
         Post/Redirect/Get con mensajes de Django.
         """
         return self.request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
+
+class LandingView(LeadSubmitMixin, CreateView):
+    form_class = LeadForm
+    template_name = 'landing/landing.html'
+    lead_source = Lead.Source.LANDING
+    success_message = content.FORM_SECTION['success_message']
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(content.get_landing_context())
+        ctx['chat_enabled'] = chat.is_enabled()
+        ctx['chat_max_length'] = chat.MESSAGE_MAX_LENGTH
+        ctx['json_ld'] = seo.landing_json_ld(self.request)
+        return ctx
+
+    def get_success_url(self):
+        return reverse('landing:home') + '#contacto'
 
 
 class ChatView(View):

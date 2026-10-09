@@ -58,6 +58,19 @@ class SendLeadTests(TestCase):
         self.assertEqual(payload['lead']['email'], 'ana@empresa.com')
         self.assertEqual(payload['lead']['service_label'], 'Base de conocimiento con IA')
         self.assertEqual(payload['lead']['ip_address'], '203.0.113.7')
+        self.assertEqual(payload['lead']['origin'], 'landing')
+
+    def test_payload_of_contact_lead_includes_its_fields(self):
+        lead = make_lead(
+            source=Lead.Source.CONTACT, service_interest='', product='implementacion',
+            phone='+34 600 000 000', contact_preference='videollamada',
+        )
+        payload = webhooks.build_payload(lead)['lead']
+        self.assertEqual(payload['origin'], 'contacto')
+        self.assertEqual(payload['product'], 'implementacion')
+        self.assertEqual(payload['product_label'], 'Implementación')
+        self.assertEqual(payload['phone'], '+34 600 000 000')
+        self.assertEqual(payload['contact_preference_label'], 'Videollamada')
 
     def test_marks_lead_as_delivered_on_success(self):
         lead = make_lead()
