@@ -13,7 +13,7 @@ DATABASES = {
 # Dominios (con esquema) desde los que Django acepta POSTs con CSRF.
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
-    default='https://proyecto-web-landing-page.qk5lk3.easypanel.host',
+    default='https://iabits.tech',
     cast=lambda v: [s.strip() for s in v.split(',') if s.strip()],
 )
 

@@ -121,7 +121,7 @@ SECURE_REFERRER_POLICY = 'same-origin'
 # --- Límites de uso --------------------------------------------------------
 # Proxies propios delante de gunicorn (Easypanel pone 1). Se usa para leer la
 # IP real del visitante sin fiarse de las cabeceras que envía el cliente;
-# ver apps/common.py.
+# ver apps/common/http.py.
 TRUSTED_PROXY_DEPTH = config('TRUSTED_PROXY_DEPTH', default=1, cast=int)
 
 # Envíos del formulario de leads por IP dentro de la ventana.
