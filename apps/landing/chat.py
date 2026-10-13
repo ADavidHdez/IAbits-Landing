@@ -39,6 +39,20 @@ def is_enabled() -> bool:
     )
 
 
+def widget_context(source, form_url) -> dict:
+    """Contexto que necesita el partial del chat en cualquier página.
+
+    `source` es la página (ChatConversation.Source) y separa sus conversaciones;
+    `form_url` es a dónde lleva el enlace "Ir al formulario" si el chat falla.
+    """
+    return {
+        'chat_enabled': is_enabled(),
+        'chat_max_length': MESSAGE_MAX_LENGTH,
+        'chat_source': source,
+        'chat_form_url': form_url,
+    }
+
+
 def build_payload(user_message) -> dict:
     """Cuerpo JSON que recibe n8n. Los nombres son estables: si cambian, hay
     que actualizar también n8n/chat-agent.workflow.json."""
@@ -52,6 +66,7 @@ def build_payload(user_message) -> dict:
         'source': settings.N8N_WEBHOOK_SOURCE,
         'sent_at': timezone.now().isoformat(),
         'conversation_id': str(conversation.id),
+        'page': conversation.source,
         'message': user_message.text,
         'history': [{'role': m.role, 'text': m.text} for m in reversed(previous)],
     }

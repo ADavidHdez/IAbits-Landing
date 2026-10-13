@@ -16,6 +16,14 @@ class HomeViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'home/home.html')
 
+    def test_every_price_says_taxes_are_included(self):
+        response = self.client.get(self.url)
+        self.assertContains(
+            response,
+            f'<span class="product-tax-note">{content.PRICE_TAX_NOTE}</span>',
+            count=len(content.PRODUCTS) + len(content.SUPPORT_PLANS),
+        )
+
     def test_renders_theme_variables(self):
         response = self.client.get(self.url)
         self.assertContains(response, content.THEME['color_primary'])
@@ -38,6 +46,8 @@ class HomeViewTests(TestCase):
             self.assertContains(response, product['price'])
             for feature in product['features']:
                 self.assertContains(response, feature)
+            if product.get('cta_note'):
+                self.assertContains(response, f'<p class="product-cta-note">{product["cta_note"]}</p>')
 
     def test_renders_team(self):
         response = self.client.get(self.url)
@@ -45,6 +55,66 @@ class HomeViewTests(TestCase):
         for member in content.TEAM:
             self.assertContains(response, member['name'])
             self.assertContains(response, member['role'])
+
+    def test_team_photo_framing_reaches_the_css(self):
+        """La foto se pinta y su encuadre llega como variables al <style> con nonce.
+
+        El zoom tiene que salir con punto: con el locale es-es Django lo
+        escribiría "1,3" y el navegador ignoraría la variable.
+        """
+        member = {
+            **content.TEAM[0],
+            'photo': 'img/david-hernandez.jpg',
+            'photo_zoom': 1.3,
+            'photo_focus': '50% 20%',
+        }
+        with patch.object(content, 'TEAM', [member]):
+            response = self.client.get(self.url)
+        self.assertContains(response, 'img/david-hernandez')
+        self.assertContains(response, 'class="photo team-photo team-photo-1"')
+        self.assertContains(response, '--photo-zoom: 1.3;')
+        self.assertContains(response, '--photo-focus: 50% 20%;')
+        self.assertNotContains(response, ' style=')
+
+    def test_home_and_landing_offer_the_same_services(self):
+        """Cada servicio de la landing tiene su tarjeta en la home, y al revés,
+        con el mismo nombre.
+
+        Las descripciones pueden ser distintas; lo que no puede pasar es que
+        una página mencione un servicio que la otra no tiene, o que lo llame
+        de otra forma.
+        """
+        from apps.landing import content as landing_content
+
+        home_services = {item['service']: item['name'] for item in content.TECH_ITEMS}
+        landing_services = {service.slug: service.title for service in landing_content.SERVICES}
+        self.assertEqual(len(home_services), len(content.TECH_ITEMS), 'Servicio repetido en la home')
+        self.assertEqual(
+            home_services, landing_services,
+            'Home (TECH_ITEMS) y landing (SERVICES) deben ofrecer los mismos servicios '
+            'con los mismos nombres',
+        )
+
+    def test_footer_links_both_instagram_accounts_on_home_and_contact(self):
+        for url in (self.url, reverse('home:contact')):
+            response = self.client.get(url)
+            html = response.content.decode()
+            self.assertContains(response, content.FOOTER['social_title'])
+            for social in content.SOCIAL_LINKS:
+                self.assertContains(
+                    response,
+                    f'href="{social["url"]}" target="_blank" rel="noopener noreferrer"',
+                )
+                self.assertContains(response, social['handle'])
+            # Un degradado por icono, cada uno con su id: repetirlo no es HTML válido.
+            for i in range(1, len(content.SOCIAL_LINKS) + 1):
+                self.assertEqual(html.count(f'id="instagram-gradient-{i}"'), 1)
+
+    def test_only_company_instagram_goes_to_structured_data(self):
+        response = self.client.get(self.url)
+        for social in content.SOCIAL_LINKS:
+            in_same_as = f'"sameAs": ["{social["url"]}"]' in response.content.decode()
+            self.assertEqual(in_same_as, social['organization'], social['handle'])
 
     def test_renders_footer(self):
         response = self.client.get(self.url)
@@ -102,7 +172,7 @@ class HomeViewTests(TestCase):
             )
         self.assertNotContains(response, 'mailto:' + content.CONTACT['email'] + '?subject=')
 
-    def test_info_button_below_support_and_above_tech(self):
+    def test_info_button_below_support_and_above_team(self):
         response = self.client.get(self.url)
         html = response.content.decode()
         button = (
@@ -111,7 +181,22 @@ class HomeViewTests(TestCase):
         )
         self.assertIn(button, html)
         self.assertLess(html.index('id="soporte"'), html.index(button))
-        self.assertLess(html.index(button), html.index('id="tecnologia"'))
+        self.assertLess(html.index(button), html.index('id="equipo"'))
+
+    def test_value_comes_before_prices(self):
+        """El visitante ve qué automatizamos antes que cualquier precio."""
+        html = self.client.get(self.url).content.decode()
+        order = ['id="inicio"', 'id="automatizamos"', 'id="planes"', 'id="soporte"', 'id="equipo"']
+        positions = [html.index(anchor) for anchor in order]
+        self.assertEqual(positions, sorted(positions))
+
+    def test_nav_links_point_to_existing_sections_in_page_order(self):
+        html = self.client.get(self.url).content.decode()
+        positions = []
+        for section in content.NAV['sections']:
+            self.assertIn(f'<a href="#{section["anchor"]}">{section["text"]}</a>', html)
+            positions.append(html.index(f'id="{section["anchor"]}"'))
+        self.assertEqual(positions, sorted(positions))
 
 
 class ContactViewGetTests(TestCase):
@@ -155,6 +240,14 @@ class ContactViewGetTests(TestCase):
         self.assertContains(response, f'href="{reverse("home:home")}"')
         self.assertNotContains(response, reverse('landing:home'))
 
+    def test_nav_links_to_home_sections(self):
+        response = self.client.get(self.url)
+        for section in content.NAV['sections']:
+            self.assertContains(
+                response,
+                f'<a href="{reverse("home:home")}#{section["anchor"]}">{section["text"]}</a>',
+            )
+
 
 class ContactViewPostTests(TestCase):
     def setUp(self):
@@ -169,6 +262,7 @@ class ContactViewPostTests(TestCase):
             'contact_preference': 'videollamada',
             'message': 'Quiero un diagnóstico.',
             'website': '',
+            'privacy': 'on',
         }
 
     def ajax_post(self, data):

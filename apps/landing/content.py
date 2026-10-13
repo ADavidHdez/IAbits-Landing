@@ -39,10 +39,10 @@ BRAND = {
 # ≤ 158, o Google los corta.
 SITE = {
     'name': BRAND['name'],
-    'title': 'Diagnóstico de procesos con IA para empresas | IAbits Studio',
+    'title': 'Automatiza procesos con IA en tu empresa | IAbits Studio',
     'meta_description': (
-        'Recupera horas cada mes automatizando ventas, procesos y conocimiento '
-        'interno con IA. Cuéntanos tu caso y te contactamos en menos de 24 h, '
+        'Recupera horas cada mes automatizando con IA las ventas y los procesos '
+        'de tu empresa. Cuéntanos tu caso y te contactamos en menos de 24 h, '
         'sin compromiso.'
     ),
 }
@@ -56,60 +56,71 @@ THEME = {
     'color_text': '#111827',
     'color_muted': '#6b7280',
     'color_border': '#e5e7eb',
+    # Avisos que piden atención, como el contador del botón del chat.
+    'color_accent': '#e02424',
     'radius': '12px',
     'max_width': '1080px',
 }
 
 HERO = {
-    'headline': 'Recupera cientos de horas al mes con la automatización y la IA trabajando para ti',
+    'headline': 'Descubre qué procesos de tu negocio puedes automatizar con IA',
     'subheadline': (
-        'Automatizamos ventas, procesos y conocimiento interno para que tu '
-        'equipo se dedique a lo que genera ingresos. Sin ampliar plantilla.'
+        'Automatizamos tus ventas y tus procesos, y ordenamos tu conocimiento interno '
+        'para que tu equipo se dedique a lo que genera ingresos. Sin ampliar plantilla.'
     ),
-    'cta_text': 'Quiero mi diagnóstico',
+    'cta_text': 'Quiero más información',
     'cta_anchor': '#contacto',
 }
 
 SERVICES_SECTION = {
     'title': 'Qué podemos automatizar por ti',
-    'subtitle': 'Soluciones de IA aplicadas a resultados, no a promesas.',
+    'subtitle': 'Soluciones de IA orientadas a resultados, no a promesas.',
 }
 
 SERVICES = [
     Service(
         slug='agentes-inbound',
         icon='🤖',
-        title='Asistentes de negocios con IA',
+        title='Agentes de IA',
         description=(
-            'Agentes autónomos que asisten al cliente, venden '
+            'Agentes autónomos que atienden a tus clientes, venden '
             'y ejecutan tareas por ti, 24/7.'
         ),
     ),
     Service(
         slug='automatizacion-procesos',
         icon='⚙️',
-        title='Automatización inteligente de procesos',
+        title='Automatización inteligente',
         description=(
-            'Automatizamos tus tareas repetitivas para que tu equipo se '
-            'dedique a lo que genera ingresos, no a copiar y pegar.'
+            'Tus tareas repetitivas se hacen solas, sin copiar y pegar ni '
+            'errores. Tu equipo recupera horas cada semana.'
         ),
     ),
     Service(
         slug='base-conocimiento',
         icon='📚',
-        title='Base de conocimiento con IA',
+        title='Bases de conocimiento',
         description=(
-            'Implementaremos una Base de Conocimiento con IA para que tus '
-            'empleados reduzcan a la mitad el tiempo que pierden buscando '
-            'información.'
+            'Reunimos la información de tu empresa en un asistente con IA. '
+            'Tu equipo pregunta y encuentra la respuesta al momento, sin perder '
+            'tiempo buscando.'
+        ),
+    ),
+    Service(
+        slug='integraciones',
+        icon='🔗',
+        title='Integraciones inteligentes',
+        description=(
+            'Conectamos la IA con tu correo, tu CRM y las herramientas que ya '
+            'usas para que trabajen juntas, sin errores ni datos duplicados.'
         ),
     ),
     Service(
         slug='webs-landing',
         icon='🖥️',
-        title='Webs y landing pages que venden',
+        title='Páginas web y landings',
         description=(
-            'Diseñamos páginas rápidas y enfocadas en conversión: menos '
+            'Diseñamos páginas rápidas y pensadas para que te contacten: menos '
             'adorno, más clientes.'
         ),
     ),
@@ -118,8 +129,17 @@ SERVICES = [
         icon='📣',
         title='Redes sociales en piloto automático',
         description=(
-            'Automatizamos y optimizamos tu presencia en redes: publicaciones '
-            'constantes y contenido optimizado sin dedicarle horas.'
+            'Preparamos y programamos tus publicaciones con IA. Presencia '
+            'constante en redes sin dedicarle horas.'
+        ),
+    ),
+    Service(
+        slug='software',
+        icon='📐',
+        title='Software a medida',
+        description=(
+            'Herramientas hechas para tu negocio, integradas con tus sistemas y '
+            'adaptadas a tus procesos. Sin pagar por funciones que no necesitas.'
         ),
     ),
 ]
@@ -155,7 +175,7 @@ VALUE_PROPS = [
 # Llamada a la acción intermedia: recoge al visitante convencido por las
 # ventajas antes de que siga leyendo cómo trabajamos.
 MID_CTA = {
-    'cta_text': 'Quiero mi diagnóstico',
+    'cta_text': 'Quiero más información',
     'cta_anchor': '#contacto',
 }
 
@@ -197,7 +217,7 @@ FORM_SECTION = {
         'Déjanos tus datos y te contactamos antes de 24 horas, '
         'sin ningún compromiso.'
     ),
-    'submit_text': 'Solicitar diagnóstico',
+    'submit_text': 'Solicitar información',
     'sending_text': 'Enviando…',
     'success_message': 'Gracias por tu interés. Te contactaremos en menos de 24 horas.',
     'error_message': (
@@ -215,7 +235,9 @@ CHAT = {
     ),
     'placeholder': 'Escribe tu mensaje…',
     'input_label': 'Tu mensaje',
-    'disclaimer': 'Respuestas generadas por IA.',
+    'disclaimer': 'Respuestas generadas por IA',
+    # Enlace a /privacidad/ que sigue al aviso, en la misma línea.
+    'privacy_link_text': 'Privacidad',
     'typing_label': 'El asistente está escribiendo…',
     'error_message': (
         'Ahora mismo no puedo responder. Déjanos tus datos en el formulario y '
@@ -231,15 +253,20 @@ CHAT = {
     'open_label': 'Abrir chat',
     'close_label': 'Cerrar chat',
     'send_label': 'Enviar mensaje',
+    # Burbuja que asoma sobre el botón a los pocos segundos (una vez por sesión)
+    # y contador del botón: el saludo que espera dentro del chat.
+    'teaser': '👋 ¿Te ayudo a automatizar algo de tu negocio?',
+    'teaser_close_label': 'Cerrar aviso',
+    'badge': '1',
 }
 
 CONTACT = {
-    'email': 'iabits.studio@gmail.com',
+    'email': 'contacto@iabits.tech',
     'phone': '',
 }
 
 FOOTER = {
-    'text': '© 2026 IAbits. Todos los derechos reservados.',
+    'text': '© 2026 IAbits Studio. Todos los derechos reservados.',
 }
 
 

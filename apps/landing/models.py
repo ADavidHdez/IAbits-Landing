@@ -40,9 +40,16 @@ class Lead(models.Model):
 
 
 class ChatConversation(models.Model):
-    """Una conversación del chat de la landing con el agente de IA."""
+    """Una conversación del chat flotante (landing o home) con el agente de IA."""
+
+    class Source(models.TextChoices):
+        LANDING = 'landing', 'landing'
+        HOME = 'home', 'home'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Página desde la que se habla. Cada página lleva su propia conversación:
+    # un id de la landing no sirve para continuar en la home, ni al revés.
+    source = models.CharField('origen', max_length=20, choices=Source.choices, default=Source.LANDING)
     ip_address = models.GenericIPAddressField('IP de origen', null=True, blank=True)
     user_agent = models.CharField('user agent', max_length=255, blank=True)
     created_at = models.DateTimeField('inicio', auto_now_add=True)

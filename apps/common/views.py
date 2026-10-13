@@ -13,7 +13,7 @@ def robots_txt(request):
         'User-agent: *',
         'Allow: /',
         'Disallow: /accounts/',
-        f'Disallow: {reverse("landing:chat")}',
+        f'Disallow: {reverse("chat")}',
         '',
         f'Sitemap: {request.build_absolute_uri(reverse("sitemap"))}',
     ]

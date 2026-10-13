@@ -1,0 +1,137 @@
+{
+  "name": "IAbits — Borrado por plazos (RGPD)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 4
+            }
+          ]
+        }
+      },
+      "id": "c1000000-0000-4000-8000-000000000001",
+      "name": "Cada día a las 4:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-320, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iabits.tech/interno/purgar-datos/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Token",
+              "value": "PON-AQUI-EL-MISMO-TOKEN-QUE-EN-N8N_WEBHOOK_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c1000000-0000-4000-8000-000000000002",
+      "name": "Purgar BD de la web",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-60, -120],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "notes": "Borra en la web los leads de más de LEAD_RETENTION_DAYS (90) y las conversaciones del chat de más de CHAT_RETENTION_DAYS (180). Responde {ok, leads, chat_conversations}."
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "PON-AQUI-TU-BASE-ID",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "PON-AQUI-TU-TABLA-ID",
+          "mode": "id"
+        },
+        "filterByFormula": "AND(NOT({Cliente}), IS_BEFORE(IF({Último contacto}, {Último contacto}, DATETIME_PARSE({Creado en})), DATEADD(TODAY(), -3, 'months')))",
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "c1000000-0000-4000-8000-000000000003",
+      "name": "Buscar caducados en Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [-60, 120],
+      "notes": "Leads que no son clientes y cuyo último contacto (o, si está vacío, su fecha de llegada) tiene más de 3 meses. Necesita en la tabla las columnas Cliente (casilla) y Último contacto (fecha).",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PON-AQUI-TU-CREDENCIAL-AIRTABLE",
+          "name": "Airtable account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "deleteRecord",
+        "base": {
+          "__rl": true,
+          "value": "PON-AQUI-TU-BASE-ID",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "PON-AQUI-TU-TABLA-ID",
+          "mode": "id"
+        },
+        "id": "={{ $json.id }}"
+      },
+      "id": "c1000000-0000-4000-8000-000000000004",
+      "name": "Borrar en Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [200, 120],
+      "notes": "Se ejecuta una vez por registro encontrado. Si no hay ninguno caducado, no se ejecuta.",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "PON-AQUI-TU-CREDENCIAL-AIRTABLE",
+          "name": "Airtable account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cada día a las 4:00": {
+      "main": [
+        [
+          {
+            "node": "Purgar BD de la web",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Buscar caducados en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar caducados en Airtable": {
+      "main": [
+        [
+          {
+            "node": "Borrar en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

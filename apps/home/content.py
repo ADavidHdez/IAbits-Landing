@@ -7,7 +7,7 @@ comparten con la landing para que las dos webs se vean como una sola marca.
 Los valores marcados con «PROVISIONAL» son de relleno: hay que sustituirlos
 por los reales antes de publicar.
 """
-from apps.landing.content import BRAND, CONTACT, THEME
+from apps.landing.content import BRAND, CHAT, CONTACT, THEME
 
 # SEO de la home: mismas reglas que SITE en apps/landing/content.py (título
 # ≤ 60 caracteres, descripción ≤ 158) y distintos de los de la landing.
@@ -24,17 +24,26 @@ SITE = {
 NAV = {
     'logo_alt': BRAND['name'],
     'home_text': 'Inicio',
+    # Enlaces a las secciones de la home, en el orden de la página. 'anchor'
+    # es el id de la <section> en home.html: si se cambia uno, cambia el otro.
+    'sections': [
+        {'anchor': 'automatizamos', 'text': 'Servicios'},
+        {'anchor': 'planes', 'text': 'Planes'},
+        {'anchor': 'soporte', 'text': 'Soporte'},
+        {'anchor': 'equipo', 'text': 'Equipo'},
+    ],
 }
 
 # Bloque 1: presentación del negocio.
 INTRO = {
-    'eyebrow': 'Automatización con IA',
+    # Etiqueta sobre el titular: no repite el titular, dice para quién trabajamos.
+    'eyebrow': 'Agencia de automatización para pymes',
     'headline': 'Automatización con IA para llevar tu negocio al siguiente nivel.',
     'description': (
-            'La Inteligencia Artificial no es el futuro, ya es el presente.\n'
-            'Sin embargo, muchos negocios continúan sin dar el paso.\n\n'
-            'En IAbits nos preocupamos por tu negocio. Nosotros nos encargamos de detectar los cuellos de botella. '
-            'Estudiamos cómo optimizarlo, lo implementamos y te enseñamos a usarlo.'
+            'La inteligencia artificial no es el futuro: ya es el presente.\n'
+            'Sin embargo, muchos negocios todavía no han dado el paso.\n\n'
+            'En IAbits nos preocupamos por tu negocio. Detectamos sus cuellos de botella, '
+            'diseñamos la solución, la ponemos en marcha y te enseñamos a usarla.'
         ),
     # Sin foto todavía: se muestra un hueco con este texto. Al tener la
     # imagen, se coloca en static/img/ y se rellena 'photo' con su ruta
@@ -46,8 +55,8 @@ INTRO = {
 
 # Bloque 2: los dos productos que vende el negocio.
 PRODUCTS_SECTION = {
-    'title': 'Nuestros servicios',
-    'subtitle': 'Empieza por saber dónde ganar tiempo y, después, lo hacemos realidad.',
+    'title': 'Planes',
+    'subtitle': 'Empieza por saber dónde puedes ganar tiempo. Después, lo hacemos realidad.',
 }
 
 PRODUCTS = [
@@ -59,7 +68,7 @@ PRODUCTS = [
         'price_note': 'pago único',  # PROVISIONAL
         'features': [  # PROVISIONAL
             'Sesión de análisis',
-            'Mapa de tus procesos actuales siguiendo el Estándar ISO 9001:2015',
+            'Mapa de tus procesos actuales con la metodología de la norma ISO 9001:2015',
             'Lista priorizada de automatizaciones',
             'Estimación de horas y dinero ahorrados',
             'Informe final con hoja de ruta',
@@ -67,29 +76,35 @@ PRODUCTS = [
         'cta_text': 'Solicitar diagnóstico',
         # <h1> de /contacto/ cuando se llega desde este botón.
         'contact_heading': 'Solicita tu diagnóstico',
-        'featured': False,
+        'featured': True,
     },
     {
         'slug': 'implementacion',
         'name': 'Implementación',
         'summary': 'Ponemos en marcha la automatización y la dejamos funcionando.',
-        'price': 'desde 700 €',  # PROVISIONAL
+        'price': 'desde 500 €',  # PROVISIONAL
         'price_note': 'según alcance',  # PROVISIONAL
         'features': [  # PROVISIONAL
-            'Todo lo incluido en el Diagnóstico',
             'Desarrollo e integración con tus herramientas',
             'Agentes de IA y flujos automáticos a medida',
             'Formación para tu equipo',
             '30 días de soporte tras la entrega',
-            'Se descontará el precio del Diagnóstico'
+            'Descontamos el precio del Diagnóstico',
         ],
         'cta_text': 'Solicitar implementación',
+        # Aclaración opcional, en pequeño bajo el botón.
+        'cta_note': 'Para clientes con diagnóstico',
         'contact_heading': 'Solicita tu implementación',
-        'featured': True,
+        'featured': False,
     },
 ]
 
-PRODUCTS_FEATURED_LABEL = 'El más completo'
+# Bajo cada precio de PRODUCTS y SUPPORT_PLANS. Si algún cliente puede ser un
+# particular, la ley exige indicar que el precio es final, con impuestos.
+PRICE_TAX_NOTE = 'Impuestos incluidos'
+
+PRODUCTS_FEATURED_LABEL = 'Empieza por aquí'  # Etiqueta que acompaña al producto destacado en la home.
+SUPPORT_FEATURED_LABEL = 'Recomendado'  # Ídem para el plan de soporte destacado.
 
 # Bloque 3: Mantenimiento y soporte: se ofrece como servicio adicional a la implementación, no como producto independiente.
 
@@ -105,10 +120,10 @@ SUPPORT_PLANS = [
             'slug': 'estandar',
             'name': 'Estándar',
             'summary': 'Lo mínimo para mantener tus automatizaciones funcionando.',
-            'price': '59 €',  # PROVISIONAL
-            'price_note': 'según alcance',  # PROVISIONAL
+            'price': '57 €',  # PROVISIONAL
+            'price_note': '/ mes',
             'features': [  # PROVISIONAL
-                'Mantenimiento de tus automatizaciones base',
+                'Mantenimiento básico de tus automatizaciones',
                 'Actualizaciones de tus agentes de IA',
             ],
             'cta_text': '',
@@ -118,8 +133,8 @@ SUPPORT_PLANS = [
     {
         'slug': 'premium', 
         'name': 'Premium', 
-        'summary': 'Lo ideal para mantener tus automatizaciones sin preocupaciones', 
-        'price': '99 €',
+        'summary': 'Lo ideal para mantener tus automatizaciones sin preocupaciones.',
+        'price': '97 €',
         'price_note': '/ mes', 
         'features': [
             'Mantenimiento de tus automatizaciones',
@@ -132,16 +147,16 @@ SUPPORT_PLANS = [
     
     {
         'slug': 'advanced',  
-        'name': 'Advanced', 
-        'summary': 'La opción más completa para mantener tus automatizaciones al día', 
-        'price': '159 €', 
+        'name': 'Avanzado',
+        'summary': 'La opción más completa para mantener tus automatizaciones al día.',
+        'price': '130 €', 
         'price_note': 
         '/ mes', 
         'features': [
-            'Mantenimiento de tus automatizaciones Plus',
+            'Mantenimiento avanzado de tus automatizaciones',
             'Actualizaciones de tus agentes de IA',
             'Revisiones de seguridad y optimizaciones periódicas',
-            'Soporte prioritario 24/7',
+            'Soporte prioritario',
             'Mejoras y nuevas implementaciones según tus necesidades'
         ], 
         'cta_text': '', 
@@ -151,7 +166,7 @@ SUPPORT_PLANS = [
 
 # Bloque 4: la tecnología con la que trabajamos.
 TECH_SECTION = {
-    'title': 'Nuestra tecnología',
+    'title': 'Lo que automatizamos por ti',
     'subtitle': 'Potenciados por la tecnología de',
 }
 
@@ -162,27 +177,33 @@ TECH_SECTION = {
 # aparece sin enlace.
 TECH_PARTNER = {
     'name': 'IA ORION',
-    'url': 'https://iaorion.com/',
+    'url': 'https://iaorion.com/empresa/',
     'logo': 'img/iaorion.webp',
     'new_tab_label': '(se abre en una pestaña nueva)',
 }
 
+# Los mismos servicios que la landing (apps/landing/content.SERVICES), con
+# textos propios. 'service' es el slug del servicio equivalente: un test
+# comprueba que las dos páginas ofrecen exactamente los mismos.
 TECH_ITEMS = [  # PROVISIONAL
     {
+        'service': 'agentes-inbound',
         'name': 'Agentes de IA',
         'text': (
             'Asistentes que atienden a tus clientes, responden dudas y '
-            'ejecutan tareas por ti, a cualquier hora.'
+            'ejecutan tareas por ti a cualquier hora.'
         ),
     },
     {
-        'name': 'Automatización de flujos',
+        'service': 'automatizacion-procesos',
+        'name': 'Automatización inteligente',
         'text': (
-            'Conectamos tus herramientas para que los datos y las tareas '
-            'repetitivas se muevan solos, sin copiar y pegar.'
+            'Las tareas repetitivas se hacen solas: datos, emails y facturas '
+            'sin copiar y pegar ni errores.'
         ),
     },
     {
+        'service': 'base-conocimiento',
         'name': 'Bases de conocimiento',
         'text': (
             'La información de tu empresa ordenada y consultable con IA, '
@@ -190,17 +211,35 @@ TECH_ITEMS = [  # PROVISIONAL
         ),
     },
     {
-        'name': 'Integraciones Inteligentes',
+        'service': 'integraciones',
+        'name': 'Integraciones inteligentes',
         'text': (
             'Enlazamos la IA con tu correo, tu CRM, tu web y el resto de los '
             'sistemas que ya usas para que trabajen juntos y sin errores.'
         ),
     },
     {
+        'service': 'software',
         'name': 'Software a medida',
         'text': (
-            'Herramientas a medida para tareas específicas de tu negocio potenciadas con IA e '
-            'integradas con sistemas que ya usas.'
+            'Herramientas a medida para tareas específicas de tu negocio, potenciadas '
+            'con IA e integradas con los sistemas que ya usas.'
+        ),
+    },
+    {
+        'service': 'webs-landing',
+        'name': 'Páginas web y landings',
+        'text': (
+            'Hechas desde cero, elegantes y profesionales, pensadas para dar '
+            'visibilidad a tu negocio.'
+        ),
+    },
+    {
+        'service': 'redes-sociales',
+        'name': 'Redes sociales en piloto automático',
+        'text': (
+            'Publicaciones constantes y contenido optimizado con IA para que tu '
+            'marca esté presente sin dedicarle horas.'
         ),
     },
 ]
@@ -216,19 +255,57 @@ TEAM = [
         'name': 'David Hernández',  # PROVISIONAL
         'role': 'Fundador · Especialista en automatización con IA',  # PROVISIONAL
         'bio': (  # PROVISIONAL
+            'Técnico en Automatización y Robótica Industrial. '
             'Diseño e implemento automatizaciones con inteligencia artificial '
-            'para pequeñas y medianas empresas. Yo junto a mi equipo nos encargamos de ofrecer el mejor resultado posible. '
-            'Vamos de principio a fin, entendiendo cómo trabajas, pensando la solución con '
-            'más retorno y nos aseguramos de que funcione en el día a día.'
+            'para pequeñas y medianas empresas. '
+            'Mi equipo y yo te acompañamos de principio a fin: entendemos cómo trabajas, '
+            'pensamos la solución con más retorno y nos aseguramos de que funcione en el '
+            'día a día.'
         ),
-        'photo': '',  # Igual que INTRO['photo']: ruta dentro de static/.
+        'photo': 'img/david-hernandez.jpg',  # Igual que INTRO['photo']: ruta dentro de static/.
+        # Encuadre de la foto dentro del círculo:
+        # - photo_zoom: 1 = foto entera; 1.3 = 30 % más cerca.
+        # - photo_focus: punto que queda fijo al acercar, como "X% Y%"
+        #   ('50% 0%' = arriba al centro, '50% 50%' = centro exacto).
+        'photo_zoom': 1.0,
+        'photo_focus': '50% 20%',
         'photo_placeholder': 'Foto próximamente',
     },
 ]
 
 FOOTER = {
     'text': '© 2026 IAbits Studio. Todos los derechos reservados.',
+    'social_title': 'Síguenos en Instagram',
+    'new_tab_label': '(se abre en una pestaña nueva)',
 }
+
+# Cuentas de Instagram del footer (home y /contacto/), en este orden.
+# 'organization': True marca la cuenta oficial de la empresa: es la única que
+# se publica en los datos estructurados (sameAs) como perfil de IAbits.
+SOCIAL_LINKS = [
+    {
+        'name': 'IAbits Studio',
+        'handle': '@iabits.studio',
+        'url': 'https://www.instagram.com/iabits.studio/',
+        'organization': True,
+    },
+    {
+        'name': 'David Hernández',
+        'handle': '@davidh.421',
+        'url': 'https://www.instagram.com/davidh.421/',
+        'organization': False,
+    },
+]
+
+# Degradado oficial del logo de Instagram (colores de su guía de marca, no
+# del tema): de amarillo, abajo a la izquierda, a violeta, arriba a la derecha.
+INSTAGRAM_GRADIENT = [
+    ('0', '#ffd600'),
+    ('0.25', '#ff7a00'),
+    ('0.5', '#ff0069'),
+    ('0.75', '#d300c5'),
+    ('1', '#7638fa'),
+]
 
 # Página de contacto (/contacto/): a ella llevan los botones de PRODUCTS y el
 # de SUPPORT_SECTION. SEO con las mismas reglas que SITE y distinto del de la
@@ -303,7 +380,9 @@ def get_home_context():
         'intro': INTRO,
         'products_section': PRODUCTS_SECTION,
         'products': PRODUCTS,
+        'price_tax_note': PRICE_TAX_NOTE,
         'products_featured_label': PRODUCTS_FEATURED_LABEL,
+        'support_featured_label': SUPPORT_FEATURED_LABEL,
         'support_section': SUPPORT_SECTION,
         'support_plans': SUPPORT_PLANS,
         'info_request': INFO_REQUEST,
@@ -312,8 +391,11 @@ def get_home_context():
         'tech_partner': TECH_PARTNER,
         'team_section': TEAM_SECTION,
         'team': TEAM,
+        'chat': CHAT,
         'contact': CONTACT,
         'footer': FOOTER,
+        'social_links': SOCIAL_LINKS,
+        'instagram_gradient': INSTAGRAM_GRADIENT,
     }
 
 
@@ -325,4 +407,6 @@ def get_contact_context():
         'contact': CONTACT,
         'contact_form': CONTACT_FORM,
         'footer': FOOTER,
+        'social_links': SOCIAL_LINKS,
+        'instagram_gradient': INSTAGRAM_GRADIENT,
     }

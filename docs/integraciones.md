@@ -33,7 +33,7 @@ Django ──POST JSON──► [Webhook lead] ──► [¿Token válido?] ─�
     "email": "ana@empresa.com",
     "company": "Empresa SA",
     "service_interest": "base-conocimiento",
-    "service_label": "Base de conocimiento con IA",
+    "service_label": "Bases de conocimiento",
     "message": "Quiero una base de conocimiento.",
     "ip_address": "203.0.113.7",
     "user_agent": "Mozilla/5.0 ...",
@@ -117,8 +117,15 @@ hay que actualizar también el workflow de n8n (nodo *Normalizar lead*) y el tes
 # Chat con el agente de IA
 
 El botón flotante de la esquina abre un chat en el que responde un agente de IA
-montado en n8n. El navegador nunca habla con n8n: envía cada mensaje a `POST /landing/chat/`
+montado en n8n. Está en la landing y en la home (mismo partial, mismo endpoint, mismo
+workflow). El navegador nunca habla con n8n: envía cada mensaje a `POST /chat/`
 y Django lo reenvía, así que la URL y el token no se ven en la web.
+
+Cada página lleva **su propia conversación**: el widget envía un campo oculto `source`
+(`landing` / `home`), que se guarda en `ChatConversation.source`; un `conversation_id`
+solo se continúa desde la página que lo creó, y `chat.js` lo guarda en una clave de
+`sessionStorage` distinta por página. En la home, el enlace "Ir al formulario" del
+mensaje de error lleva a `/contacto/` (lo fija `chat.widget_context()` en cada vista).
 
 Código: [`apps/landing/chat.py`](../apps/landing/chat.py) (llamada a n8n) ·
 `ChatView` en [`views.py`](../apps/landing/views.py) ·
@@ -127,7 +134,7 @@ Código: [`apps/landing/chat.py`](../apps/landing/chat.py) (llamada a n8n) ·
 Workflow: [`n8n/chat-agent.workflow.json`](../n8n/chat-agent.workflow.json)
 
 ```
-chat.js ──fetch──► POST /landing/chat/ ──► [Webhook chat] ──► [¿Token válido?] ──sí──► [Agente IAbits] ◄── [Modelo Anthropic]
+chat.js ──fetch──► POST /chat/ ──► [Webhook chat] ──► [¿Token válido?] ──sí──► [Agente IAbits] ◄── [Modelo Anthropic]
    ▲                  │                                     │                         │
    │                  │                                     no                        ▼
    └──── { reply } ◄──┘◄──────────────────────────── [Responder 401]    [Responder con la respuesta]
@@ -138,7 +145,8 @@ chat.js ──fetch──► POST /landing/chat/ ──► [Webhook chat] ──
 1. Valida el texto (1–500 caracteres) y el CSRF.
 2. Aplica el límite por IP (`CHAT_THROTTLE_*`, por defecto 20 mensajes/hora), contado
    sobre la IP de **quien envía** cada mensaje vía `get_client_ip()`.
-3. Recupera la conversación (`conversation_id`) o empieza una nueva si no existe.
+3. Recupera la conversación (`conversation_id` + `source`) o empieza una nueva si no
+   existe o es de la otra página.
 4. Guarda el mensaje del visitante **antes** de llamar a n8n: queda en el admin aunque falle.
 5. Llama a n8n de forma síncrona (el visitante espera la respuesta) con `N8N_CHAT_TIMEOUT`.
 6. Guarda la respuesta y la devuelve. Si n8n falla, tarda o responde sin `reply`, el
@@ -158,6 +166,7 @@ Las conversaciones se leen en `/admin/` → **Conversaciones del chat** (solo le
   "source": "landing",
   "sent_at": "2026-09-27T10:00:00+00:00",
   "conversation_id": "b0e1...uuid",
+  "page": "home",
   "message": "¿Y cuánto cuesta?",
   "history": [
     {"role": "user", "text": "Hola"},
@@ -169,6 +178,10 @@ Las conversaciones se leen en `/admin/` → **Conversaciones del chat** (solo le
 Cabeceras: `Content-Type: application/json` y `X-Webhook-Token: <N8N_WEBHOOK_TOKEN>`
 (el mismo token que el webhook de leads).
 
+`page` es la página desde la que se escribe (`landing` / `home`). El workflow actual no
+lo usa; sirve para que el agente adapte sus respuestas si se añade al prompt
+(`$json.body.page`).
+
 **n8n debe responder** `{"reply": "texto de la respuesta"}` con un 2xx. El texto se
 muestra tal cual, como texto plano (se respetan los saltos de línea; el Markdown no
 se interpreta), y se recorta a 4000 caracteres.
@@ -177,7 +190,7 @@ se interpreta), y se recorta a 4000 caracteres.
 
 | Variable | Descripción |
 |---|---|
-| `N8N_CHAT_WEBHOOK_URL` | URL de producción del webhook del chat. Vacío = el chat no se muestra y `/landing/chat/` da 404. |
+| `N8N_CHAT_WEBHOOK_URL` | URL de producción del webhook del chat. Vacío = el chat no se muestra y `/chat/` da 404. |
 | `N8N_CHAT_TIMEOUT` | Segundos de espera a la respuesta del agente (por defecto 25; menos que los 60 de gunicorn). |
 | `CHAT_THROTTLE_MAX` / `CHAT_THROTTLE_WINDOW_MINUTES` | Mensajes por IP y ventana (por defecto 20 / 60 min). Cada mensaje es una llamada de pago al modelo. |
 
@@ -190,6 +203,9 @@ se interpreta), y se recorta a 4000 caracteres.
    (rápido y barato para un chat); se cambia en el desplegable *Model*.
    Para usar OpenAI, borra ese nodo, añade *OpenAI Chat Model* y conéctalo al agente
    en la entrada *Chat Model*.
+   **En producción el agente usa OpenRouter** (varios modelos). La política de privacidad
+   lo nombra como proveedor: si cambias de plataforma, actualiza `PRIVACY` en
+   `apps/legal/content.py`.
 4. El comportamiento del agente (servicios, tono, reglas) está en el nodo
    **Agente IAbits → Options → System Message**. Si cambian los servicios en
    `content.py`, actualízalo también allí.
@@ -201,3 +217,56 @@ se interpreta), y se recorta a 4000 caracteres.
 `build_payload()` en `chat.py` define los campos, y el workflow los lee en el campo
 *Text* del nodo *Agente IAbits* (`$json.body.message` y `$json.body.history`). El test
 `test_sends_payload_with_token_and_history` los fija. Los tres van juntos.
+
+---
+
+# Borrado por plazos (RGPD)
+
+La política de privacidad (`apps/legal/content.RETENTION`) promete borrar las solicitudes
+a los 3 meses y las conversaciones del chat a los 6. Lo hace cada día un workflow de n8n:
+
+Workflow: [`n8n/retention-purge.workflow.json`](../n8n/retention-purge.workflow.json) ·
+Código: [`apps/landing/retention.py`](../apps/landing/retention.py) ·
+`RetentionPurgeView` en [`views.py`](../apps/landing/views.py)
+
+```
+[Cada día a las 4:00] ──► [Purgar BD de la web]  POST /interno/purgar-datos/ (X-Webhook-Token)
+          │
+          └──────────► [Buscar caducados en Airtable] ──► [Borrar en Airtable] (uno por registro)
+```
+
+- **Web**: borra los `Lead` de más de `LEAD_RETENTION_DAYS` (90) días desde que
+  llegaron y las `ChatConversation` (con sus mensajes) sin mensajes en
+  `CHAT_RETENTION_DAYS` (180) días. Responde `{"ok": true, "leads": N, "chat_conversations": N}`.
+  Se autentica con el mismo `N8N_WEBHOOK_TOKEN`; sin él configurado la ruta da 404.
+  También se puede lanzar a mano: `python manage.py purgar_datos`.
+- **Airtable**: borra los registros **sin la casilla `Cliente`** cuyo `Último contacto`
+  (o, si está vacío, `Creado en`) tiene más de 3 meses. Los clientes no se tocan: sus
+  datos se conservan por obligaciones fiscales y se borran a mano cuando toque.
+
+## Puesta en marcha
+
+1. En la tabla de Airtable, añade dos columnas: **`Cliente`** (tipo *Checkbox*) y
+   **`Último contacto`** (tipo *Date*). Marca `Cliente` en quien contrate y actualiza
+   `Último contacto` cada vez que hables con un lead. Sin estas columnas, el nodo de
+   búsqueda falla.
+2. En n8n: **Import from File** → `n8n/retention-purge.workflow.json`.
+3. Nodo **Purgar BD de la web**: sustituye `PON-AQUI-EL-MISMO-TOKEN-QUE-EN-N8N_WEBHOOK_TOKEN`.
+4. Nodos de Airtable: misma credencial, base y tabla que en el workflow de leads.
+5. Pruébalo con **Execute workflow** y revisa la respuesta del primer nodo; después,
+   actívalo.
+
+Si cambias un plazo, cambia a la vez la variable de entorno (o la fórmula de Airtable) y
+el texto de `RETENTION` en `apps/legal/content.py`, con su fecha `UPDATED`.
+
+## Si alguien pide acceder a sus datos o borrarlos
+
+Busca su email en los tres sitios donde puede estar:
+
+1. **Admin de la web** → *Leads* (y *Conversaciones del chat* si te da la fecha o el
+   texto; el chat no guarda emails).
+2. **Airtable** → la tabla de leads.
+3. **Tu correo**: los hilos con esa persona.
+
+Para el acceso, envíale una copia de lo que encuentres; para el borrado, elimínalo en los
+tres y confírmaselo por escrito. Tienes **un mes** para responder.

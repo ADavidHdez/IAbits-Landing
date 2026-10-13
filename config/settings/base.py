@@ -24,6 +24,7 @@ LOCAL_APPS = [
     'apps.accounts',
     'apps.landing',
     'apps.home',
+    'apps.legal',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
@@ -75,6 +76,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'apps.common.context_processors.canonical',
                 'apps.landing.context_processors.brand',
+                'apps.legal.context_processors.legal',
             ],
         },
     },
@@ -152,4 +154,9 @@ N8N_CHAT_TIMEOUT = config('N8N_CHAT_TIMEOUT', default=25, cast=int)
 CHAT_THROTTLE_MAX = config('CHAT_THROTTLE_MAX', default=20, cast=int)
 CHAT_THROTTLE_WINDOW_MINUTES = config('CHAT_THROTTLE_WINDOW_MINUTES', default=60, cast=int)
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Plazos de conservación (días): los promete la política de privacidad
+# (apps/legal/content.RETENTION). Los aplica apps/landing/retention.py.
+LEAD_RETENTION_DAYS = config('LEAD_RETENTION_DAYS', default=90, cast=int)
+CHAT_RETENTION_DAYS = config('CHAT_RETENTION_DAYS', default=180, cast=int)
+
+DEFAULT_AUTO_FIELD ='django.db.models.BigAutoField'

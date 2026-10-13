@@ -741,6 +741,32 @@ nav a:hover {
   cursor: progress;
 }
 
+/* Casilla de privacidad (templates/partials/form-consent.html): texto pequeño
+   junto a la casilla, sin las medidas de los campos de texto. */
+.form-consent label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+.form-field.form-consent input {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.2rem;
+  padding: 0;
+  accent-color: var(--color-primary, #1a56db);
+}
+
+.form-consent-notice {
+  margin-top: 0.5rem;
+  color: var(--color-muted, #6b7280);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 /* Honeypot: fuera de pantalla para humanos, visible para bots */
 .hp-field {
   position: absolute;
@@ -894,6 +920,140 @@ nav a:hover {
   font-size: 0.9rem;
 }
 
+/* En la home, el footer sigue a "Quién está detrás" sin filete y más pegado:
+   las redes se leen como cierre de esa sección. */
+.team:has(+ .footer) {
+  padding-bottom: 3rem;
+}
+
+.team + .footer {
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Redes del footer de la home (home/partials/footer.html): píldoras como la
+   de la marca de "Nuestra tecnología" (.tech-partner), con el logo oficial
+   de Instagram a color. Encima del copyright y separadas de él por un filete. */
+.footer-social {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.footer-social-title {
+  margin-bottom: 0.9rem;
+  color: var(--color-text, #111827);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.footer-social-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1rem;
+  list-style: none;
+}
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 1.1rem 0.45rem 0.6rem;
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-color: color-mix(in srgb, var(--color-primary, #1a56db) 25%, transparent);
+  border-radius: 999px;
+  color: var(--color-text, #111827);
+  font-weight: 600;
+  text-decoration: none;
+  transition: translate 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.footer-social-link:hover {
+  translate: 0 -2px;
+  border-color: var(--color-primary, #1a56db);
+  box-shadow: 0 8px 18px -10px rgba(26, 86, 219, 0.45);
+  box-shadow: 0 8px 18px -10px color-mix(in srgb, var(--color-primary, #1a56db) 45%, transparent);
+}
+
+.footer-social-link:focus-visible {
+  outline: 2px solid var(--color-primary, #1a56db);
+  outline-offset: 3px;
+}
+
+.footer-social-icon {
+  flex: none;
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-social-link:hover {
+    translate: none;
+  }
+}
+
+/* Enlaces legales (templates/partials/legal-links.html): una línea discreta
+   bajo el copyright, del mismo gris que el resto del pie. Es un <nav>, así que
+   anula el padding superior de la `nav` genérica de la landing. */
+.footer-legal {
+  margin-top: 0.1rem;
+  padding-top: 0;
+  font-size: 0.8rem;
+}
+
+.footer-legal a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer-legal a:hover,
+.footer-legal a[aria-current='page'] {
+  color: var(--color-text, #111827);
+  text-decoration: underline;
+}
+
+/* --- Páginas legales (apps/legal) --- */
+
+.legal {
+  display: block;
+  padding: 3.5rem 0 4.5rem;
+}
+
+.legal h1 {
+  font-size: 2rem;
+}
+
+.legal-updated {
+  margin: 0.5rem 0 2rem;
+  color: var(--color-muted, #6b7280);
+  font-size: 0.85rem;
+}
+
+.legal h2 {
+  margin: 2rem 0 0.6rem;
+  font-size: 1.15rem;
+  text-align: left;
+}
+
+.legal p,
+.legal ul {
+  margin-bottom: 0.8rem;
+}
+
+.legal ul {
+  padding-left: 1.25rem;
+}
+
+.legal li + li {
+  margin-top: 0.35rem;
+}
+
+.legal a {
+  overflow-wrap: anywhere;
+}
+
 /* --- Timeline en pantallas estrechas --- */
 
 /* El zigzag deja las tarjetas por debajo de 300 px: se pasa a columna única
@@ -994,23 +1154,30 @@ nav a:hover {
   z-index: 900;
 }
 
-/* Entra con un pequeño rebote poco después que el hero y luego emite dos
-   ondas desde ::after para llamar la atención una sola vez, sin insistir. */
+/* Entra con un pequeño rebote poco después que el hero y luego "late": cada
+   10 s emite una onda desde ::after y el contador da un saltito. El latido
+   para en cuanto el visitante abre el chat o cierra la burbuja (.is-seen). */
 .chat-launcher {
   position: relative;
   display: grid;
   place-items: center;
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 4rem;
+  height: 4rem;
   border: none;
   border-radius: 50%;
-  background: var(--color-primary, #1a56db);
+  /* Degradado al doble de tamaño: el hover lo desplaza hacia el tono oscuro
+     (un degradado no se puede animar, su posición sí). */
+  background: linear-gradient(
+    135deg,
+    var(--color-primary, #1a56db),
+    var(--color-primary-dark, #1e429f)
+  ) 0 0 / 200% 200%;
   color: #ffffff;
   cursor: pointer;
-  box-shadow: 0 10px 24px -8px rgba(26, 86, 219, 0.6);
-  box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--color-primary, #1a56db) 60%, transparent);
+  box-shadow: 0 14px 30px -10px rgba(26, 86, 219, 0.7);
+  box-shadow: 0 14px 30px -10px color-mix(in srgb, var(--color-primary, #1a56db) 70%, transparent);
   transition:
-    background 0.2s ease,
+    background-position 0.3s ease,
     translate 0.2s ease,
     box-shadow 0.2s ease,
     opacity 0.2s ease,
@@ -1028,12 +1195,17 @@ nav a:hover {
   border: 2px solid var(--color-primary, #1a56db);
   opacity: 0;
   pointer-events: none;
-  animation: chat-launcher-wave 1.6s ease-out 1.4s 2;
+  animation: chat-launcher-wave 10s ease-out 1.4s infinite;
 }
 
 .chat-launcher:hover {
-  background: var(--color-primary-dark, #1e429f);
+  background-position: 100% 100%;
   translate: 0 -2px;
+}
+
+.chat.is-seen .chat-launcher::after,
+.chat.is-open .chat-launcher::after {
+  animation: none;
 }
 
 @keyframes chat-launcher-in {
@@ -1043,14 +1215,138 @@ nav a:hover {
   }
 }
 
+/* La onda ocupa los primeros ~1,6 s del ciclo; el resto, reposo. */
 @keyframes chat-launcher-wave {
-  from {
+  0% {
     opacity: 0.6;
     scale: 1;
   }
-  to {
+  16%,
+  100% {
     opacity: 0;
-    scale: 1.7;
+    scale: 1.75;
+  }
+}
+
+/* Contador "1": el saludo que espera dentro del chat. Salta al compás de la
+   onda y se retira al abrir el chat. Color de aviso: THEME['color_accent']. */
+.chat-badge {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.2rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.3rem;
+  border: 2px solid var(--color-bg, #ffffff);
+  border-radius: 999px;
+  background: var(--color-accent, #e02424);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  transition: opacity 0.2s ease, scale 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: chat-badge-beat 10s ease-out 1.4s infinite;
+}
+
+.chat.is-seen .chat-badge,
+.chat.is-open .chat-badge {
+  opacity: 0;
+  scale: 0.4;
+  animation: none;
+}
+
+@keyframes chat-badge-beat {
+  0%,
+  8%,
+  100% {
+    translate: 0 0;
+  }
+  4% {
+    translate: 0 -0.3rem;
+  }
+}
+
+/* Burbuja de bienvenida sobre el botón, con la misma forma que los mensajes
+   del asistente (esquina recortada hacia el botón). La muestra chat.js a los
+   pocos segundos, una vez por sesión. Todo el texto es un botón que abre el
+   chat; la ✕ solo la cierra. */
+.chat-teaser {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.9rem);
+  display: flex;
+  align-items: flex-start;
+  width: max-content;
+  max-width: min(17rem, calc(100vw - 3rem));
+  padding: 0.3rem;
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 1.1rem;
+  border-bottom-right-radius: 0.35rem;
+  box-shadow:
+    0 2px 6px rgba(17, 24, 39, 0.06),
+    0 16px 36px -14px rgba(17, 24, 39, 0.35);
+  transform-origin: bottom right;
+  animation: chat-teaser-in 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* `display: flex` taparía el `hidden` del navegador. */
+.chat-teaser[hidden] {
+  display: none;
+}
+
+.chat-teaser-text {
+  flex: 1;
+  padding: 0.45rem 0.35rem 0.45rem 0.7rem;
+  border: none;
+  border-radius: 0.8rem;
+  background: none;
+  color: var(--color-text, #111827);
+  font: inherit;
+  font-size: 0.925rem;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chat-teaser-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-muted, #6b7280);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.chat-teaser-close:hover {
+  background: var(--color-surface, #f6f8fb);
+  color: var(--color-text, #111827);
+}
+
+.chat-teaser-text:focus-visible,
+.chat-teaser-close:focus-visible {
+  outline: 2px solid var(--color-primary, #1a56db);
+  outline-offset: 1px;
+}
+
+.chat-teaser-close svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+@keyframes chat-teaser-in {
+  from {
+    opacity: 0;
+    scale: 0.85;
+    translate: 0 0.5rem;
   }
 }
 
@@ -1058,8 +1354,8 @@ nav a:hover {
    desvanece mientras la ✕ entra girando desde el lado contrario. */
 .chat-launcher-icon {
   grid-area: 1 / 1;
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 1.8rem;
+  height: 1.8rem;
   transition:
     opacity 0.2s ease,
     rotate 0.3s cubic-bezier(0.22, 1, 0.36, 1),
@@ -1390,12 +1686,31 @@ nav a:hover {
   text-align: center;
 }
 
+.chat-disclaimer a {
+  color: inherit;
+}
+
 /* En móvil el panel ocupa toda la pantalla: el botón flotante se retira (la ✕
    de la cabecera cierra) y la página de detrás deja de hacer scroll. */
 @media (max-width: 640px) {
   .chat {
     right: 1rem;
     bottom: 1rem;
+  }
+
+  /* Algo más pequeño que en escritorio para no tapar tanto contenido. */
+  .chat-launcher {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .chat-launcher-icon {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  .chat-teaser {
+    max-width: calc(100vw - 2rem);
   }
 
   .chat-panel {
@@ -1430,8 +1745,11 @@ nav a:hover {
     translate: none;
   }
 
+  /* Sin latido ni rebotes: el contador y la burbuja aparecen quietos. */
   .chat-launcher,
   .chat-launcher::after,
+  .chat-badge,
+  .chat-teaser,
   .chat-status,
   .chat-bubble {
     animation: none;
@@ -1484,6 +1802,7 @@ nav a:hover {
 
 .site-nav-brand {
   display: inline-flex;
+  flex-shrink: 0;
 }
 
 .site-nav-logo {
@@ -1521,9 +1840,31 @@ nav a:hover {
 /* Las anclas no quedan tapadas por la barra fija. */
 .intro,
 .products,
+.support,
 .tech,
 .team {
   scroll-margin-top: 4.5rem;
+}
+
+/* En móvil los enlaces no caben junto al logo: la fila se desplaza en
+   horizontal, sin barra visible, en lugar de partirse en dos líneas. */
+@media (max-width: 640px) {
+  .site-nav {
+    gap: 1rem;
+  }
+
+  .site-nav-links {
+    gap: 1.1rem;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    white-space: nowrap;
+    font-size: 0.925rem;
+  }
+
+  .site-nav-links::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* --- Hueco de foto (mientras no haya imagen real) --- */
@@ -1598,7 +1939,10 @@ nav a:hover {
 
 /* --- Bloque 2: productos --- */
 
-.products {
+/* Los fondos alternan blanco / gris en el orden de la home: presentación,
+   tecnología (gris), productos, soporte (gris) y equipo. Si se reordenan las
+   secciones, hay que mover también estos fondos. */
+.support {
   background: var(--color-surface, #f6f8fb);
 }
 
@@ -1619,7 +1963,7 @@ nav a:hover {
 }
 
 /* Botón "Solicitar información" bajo los planes. La separación con el bloque
-   de tecnología la pone el padding inferior de la sección. */
+   del equipo la pone el padding inferior de la sección. */
 .support-cta {
   margin-top: 3rem;
   text-align: center;
@@ -1680,7 +2024,7 @@ nav a:hover {
   align-items: baseline;
   gap: 0.25rem 0.6rem;
   margin: 1.5rem 0;
-  padding-bottom: 1.5rem;
+  padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--color-border, #e5e7eb);
 }
 
@@ -1694,6 +2038,15 @@ nav a:hover {
 .product-price-note {
   color: var(--color-muted, #6b7280);
   font-size: 0.9rem;
+}
+
+/* "Impuestos incluidos": en su propia línea, más pequeño y justo encima del
+   filete; el aire bajo el importe pasa a su margen superior. */
+.product-tax-note {
+  flex-basis: 100%;
+  margin-top: 1.1rem;
+  color: var(--color-muted, #6b7280);
+  font-size: 0.78rem;
 }
 
 .product-features {
@@ -1727,6 +2080,19 @@ nav a:hover {
   text-align: center;
 }
 
+/* Nota bajo el botón (PRODUCTS['cta_note']). Va en el relleno inferior de
+   la tarjeta, fuera del flujo, para que el botón quede a la misma altura
+   que el de la tarjeta vecina, que no lleva nota. */
+.product-cta-note {
+  position: absolute;
+  left: 2rem;
+  right: 2rem;
+  bottom: 0.55rem;
+  color: var(--color-muted, #6b7280);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
 /* Variante secundaria del botón: mismo tamaño que .btn-primary, sin relleno. */
 .btn-outline {
   background: transparent;
@@ -1748,8 +2114,11 @@ nav a:hover {
   background: var(--color-surface, #f6f8fb);
 }
 
-/* Seis columnas y tarjetas de dos: 3 arriba llenan la fila y las 2 de abajo
-   se centran empezando en la columna 2 y la 4. */
+/* Seis columnas y tarjetas de dos: 3 por fila. Si la última fila queda
+   incompleta, se centra sola, así que TECH_ITEMS puede crecer o menguar sin
+   tocar el CSS:
+   - 2 sueltas: empiezan en la columna 2 y la 4.
+   - 1 suelta: ocupa las columnas 3 y 4. */
 .tech-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -1762,12 +2131,16 @@ nav a:hover {
   grid-column: span 2;
 }
 
-.tech-item:nth-child(4) {
+.tech-item:nth-child(3n + 1):nth-last-child(2) {
   grid-column: 2 / span 2;
 }
 
-.tech-item:nth-child(5) {
+.tech-item:nth-child(3n + 1):nth-last-child(2) + .tech-item {
   grid-column: 4 / span 2;
+}
+
+.tech-item:nth-child(3n + 1):last-child {
+  grid-column: 3 / span 2;
 }
 
 .tech-item {
@@ -1903,6 +2276,48 @@ a.tech-partner:hover .tech-partner-logo {
   border-radius: 50%;
 }
 
+/* Con foto, el círculo es un marco que recorta y la imagen se acerca dentro
+   hacia el punto de enfoque. Zoom y enfoque llegan como variables desde
+   TEAM['photo_zoom'] y TEAM['photo_focus'] (home.html). */
+.team-photo:has(.team-photo-img) {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface, #f6f8fb);
+  /* Volumen por fuera, sin borde: dos sombras, una amplia y neutra que la
+     despega de la tarjeta y otra corta teñida de marca. Las sombras no las
+     recorta `overflow`, que solo afecta al contenido. */
+  box-shadow:
+    0 22px 44px -14px rgba(17, 24, 39, 0.45),
+    0 8px 18px -8px rgba(26, 86, 219, 0.45);
+  box-shadow:
+    0 22px 44px -14px rgba(17, 24, 39, 0.45),
+    0 8px 18px -8px color-mix(in srgb, var(--color-primary, #1a56db) 45%, transparent);
+}
+
+/* Volumen por dentro, encima de la foto: un brillo suave arriba a la
+   izquierda (como si la luz viniera de ahí) y una viñeta que oscurece el
+   borde del círculo. */
+.team-photo:has(.team-photo-img)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.08), transparent 45%),
+    radial-gradient(circle, transparent 58%, rgba(17, 24, 39, 0.3) 100%);
+}
+
+.team-photo-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--photo-focus, 50% 50%);
+  transform-origin: var(--photo-focus, 50% 50%);
+  scale: var(--photo-zoom, 1);
+}
+
 .team-photo.photo-placeholder {
   font-size: 0.8rem;
 }
@@ -1958,8 +2373,9 @@ a.tech-partner:hover .tech-partner-logo {
   }
 
   .tech-item,
-  .tech-item:nth-child(4),
-  .tech-item:nth-child(5) {
+  .tech-item:nth-child(3n + 1):nth-last-child(2),
+  .tech-item:nth-child(3n + 1):nth-last-child(2) + .tech-item,
+  .tech-item:nth-child(3n + 1):last-child {
     grid-column: auto;
   }
 

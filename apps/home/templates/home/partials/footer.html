@@ -1,0 +1,40 @@
+{% comment %}
+Footer de la web home (home.html y contact.html). Las cuentas de Instagram
+vienen de content.SOCIAL_LINKS y el degradado del logo de
+content.INSTAGRAM_GRADIENT. Cada icono lleva su propio <linearGradient> con id
+único: un id repetido en la página no es HTML válido.
+{% endcomment %}
+<footer class="footer">
+  <div class="container">
+    {% if social_links %}
+    <div class="footer-social">
+      <p class="footer-social-title">{{ footer.social_title }}</p>
+      <ul class="footer-social-list">
+        {% for social in social_links %}
+        <li>
+          <a class="footer-social-link" href="{{ social.url }}" target="_blank" rel="noopener noreferrer">
+            {# Glifo oficial de Instagram: cuadrado redondeado, círculo y punto. #}
+            <svg class="footer-social-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+                 fill="none" stroke="url(#instagram-gradient-{{ forloop.counter }})" stroke-width="2">
+              <defs>
+                <linearGradient id="instagram-gradient-{{ forloop.counter }}" gradientUnits="userSpaceOnUse"
+                                x1="2" y1="22" x2="22" y2="2">
+                  {% for offset, color in instagram_gradient %}<stop offset="{{ offset }}" stop-color="{{ color }}"/>{% endfor %}
+                </linearGradient>
+              </defs>
+              <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/>
+              <circle cx="12" cy="12" r="4.4"/>
+              <circle cx="17.4" cy="6.6" r="1.25" fill="url(#instagram-gradient-{{ forloop.counter }})" stroke="none"/>
+            </svg>
+            <span>{{ social.handle }}</span>
+            <span class="visually-hidden">: Instagram de {{ social.name }} {{ footer.new_tab_label }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    <p>{{ footer.text }}{% if contact.email %} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}{% if contact.phone %} · {{ contact.phone }}{% endif %}</p>
+    {% include 'partials/legal-links.html' %}
+  </div>
+</footer>

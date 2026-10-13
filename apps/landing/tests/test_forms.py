@@ -1,7 +1,8 @@
 from django.test import SimpleTestCase
 
 from apps.landing import content
-from apps.landing.forms import LeadForm
+from apps.landing.forms import ContactForm, LeadForm
+from apps.legal import content as legal_content
 
 
 def valid_data(**overrides):
@@ -12,6 +13,7 @@ def valid_data(**overrides):
         'service_interest': 'agentes-inbound',
         'message': 'Quiero automatizar mi prospección.',
         'website': '',
+        'privacy': 'on',
     }
     data.update(overrides)
     return data
@@ -52,6 +54,22 @@ class LeadFormTests(SimpleTestCase):
     def test_message_of_2000_chars_is_valid(self):
         form = LeadForm(data=valid_data(message='x' * 2000))
         self.assertTrue(form.is_valid(), form.errors)
+
+    def test_privacy_checkbox_is_required(self):
+        data = valid_data()
+        del data['privacy']
+        form = LeadForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors['privacy'], [legal_content.FORM_CONSENT['required_message']]
+        )
+
+    def test_contact_form_also_requires_privacy(self):
+        form = ContactForm(data={
+            'product': 'diagnostico', 'name': 'Ana Pérez', 'email': 'ana@empresa.com',
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('privacy', form.errors)
 
     def test_service_choices_track_content(self):
         choices = dict(LeadForm().fields['service_interest'].choices)

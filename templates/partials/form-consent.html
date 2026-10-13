@@ -1,0 +1,14 @@
+{% comment %}
+Casilla obligatoria de privacidad y aviso básico (art. 11 LOPDGDD), al final
+de los formularios de leads (landing y /contacto/). Textos en
+apps/legal/content.FORM_CONSENT. El enlace abre otra pestaña para no perder lo
+ya escrito en el formulario.
+{% endcomment %}
+<div class="form-field form-consent" data-field="privacy">
+  <label for="{{ form.privacy.id_for_label }}">
+    {{ form.privacy }}
+    <span>{{ form_consent.before }}<a href="{{ privacy_url }}" target="_blank" rel="noopener">{{ form_consent.link_text }}<span class="visually-hidden"> {{ form_consent.new_tab_label }}</span></a>{{ form_consent.after }}</span>
+  </label>
+  {{ form.privacy.errors }}
+  <p class="form-consent-notice">{{ form_consent.notice }}</p>
+</div>

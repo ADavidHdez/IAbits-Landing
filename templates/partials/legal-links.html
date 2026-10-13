@@ -1,0 +1,4 @@
+{# Enlaces legales del pie, en todas las páginas públicas. Los pone el context processor de apps/legal. #}
+<nav class="footer-legal" aria-label="{{ legal_links_label }}">
+  {% for link in legal_links %}<a href="{{ link.url }}"{% if link.url == request.path %} aria-current="page"{% endif %}>{{ link.text }}</a>{% if not forloop.last %}<span aria-hidden="true"> · </span>{% endif %}{% endfor %}
+</nav>

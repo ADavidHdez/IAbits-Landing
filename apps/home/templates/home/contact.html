@@ -17,6 +17,7 @@
     --color-text: {{ theme.color_text }};
     --color-muted: {{ theme.color_muted }};
     --color-border: {{ theme.color_border }};
+    --color-accent: {{ theme.color_accent }};
     --radius: {{ theme.radius }};
     --max-width: {{ theme.max_width }};
   }
@@ -31,6 +32,9 @@
     </a>
     <ul class="site-nav-links">
       <li><a href="{% url 'home:home' %}">{{ nav.home_text }}</a></li>
+      {% for section in nav.sections %}
+      <li><a href="{% url 'home:home' %}#{{ section.anchor }}">{{ section.text }}</a></li>
+      {% endfor %}
     </ul>
   </nav>
 </header>
@@ -81,6 +85,7 @@
         {{ form.message }}
         {{ form.message.errors }}
       </div>
+      {% include 'partials/form-consent.html' %}
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" data-sending-text="{{ contact_form.sending_text }}">{{ contact_form.submit_text }}</button>
       </div>
@@ -93,11 +98,7 @@
   </div>
 </section>
 
-<footer class="footer">
-  <div class="container">
-    <p>{{ footer.text }}{% if contact.email %} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}{% if contact.phone %} · {{ contact.phone }}{% endif %}</p>
-  </div>
-</footer>
+{% include 'home/partials/footer.html' %}
 {% endblock %}
 
 {% block extra_js %}

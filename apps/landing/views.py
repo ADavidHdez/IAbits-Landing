@@ -1,4 +1,5 @@
-﻿import logging
+﻿import hmac
+import logging
 import uuid
 from datetime import timedelta
 
@@ -9,12 +10,14 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import CreateView
 
 from apps.common.http import get_client_ip
 
-from . import chat, content, seo, webhooks
+from . import chat, content, retention, seo, webhooks
 from .forms import LeadForm
 from .models import ChatConversation, ChatMessage, Lead
 
@@ -112,8 +115,7 @@ class LandingView(LeadSubmitMixin, CreateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx.update(content.get_landing_context())
-        ctx['chat_enabled'] = chat.is_enabled()
-        ctx['chat_max_length'] = chat.MESSAGE_MAX_LENGTH
+        ctx.update(chat.widget_context(ChatConversation.Source.LANDING, content.CHAT['form_anchor']))
         ctx['json_ld'] = seo.landing_json_ld(self.request)
         return ctx
 
@@ -151,7 +153,13 @@ class ChatView(View):
             logger.warning('Mensaje de chat rechazado por throttle (ip=%s)', ip)
             return self.error(content.CHAT['throttle_message'], status=429)
 
-        conversation = self.get_conversation(request.POST.get('conversation_id'), ip)
+        # Página desde la que escribe (campo oculto del widget). Uno desconocido
+        # no es un error: se trata como la landing, que es el origen por defecto.
+        source = request.POST.get('source')
+        if source not in ChatConversation.Source.values:
+            source = ChatConversation.Source.LANDING
+
+        conversation = self.get_conversation(request.POST.get('conversation_id'), source, ip)
         user_message = ChatMessage.objects.create(
             conversation=conversation, role=ChatMessage.Role.USER, text=text, ip_address=ip
         )
@@ -168,20 +176,23 @@ class ChatView(View):
         conversation.save(update_fields=['updated_at'])
         return JsonResponse({'ok': True, 'reply': reply, 'conversation_id': str(conversation.id)})
 
-    def get_conversation(self, conversation_id, ip):
+    def get_conversation(self, conversation_id, source, ip):
         """Continúa la conversación indicada o, si no existe, empieza una nueva.
 
-        Un id inválido o caducado no es un error: el visitante simplemente
-        arranca de cero, igual que al abrir la web en otra pestaña.
+        Un id inválido, caducado o de la otra página no es un error: el
+        visitante simplemente arranca de cero, igual que al abrir la web en
+        otra pestaña.
         """
         try:
-            existing = ChatConversation.objects.filter(pk=uuid.UUID(conversation_id or '')).first()
+            existing = ChatConversation.objects.filter(
+                pk=uuid.UUID(conversation_id or ''), source=source
+            ).first()
         except ValueError:
             existing = None
         if existing:
             return existing
         return ChatConversation.objects.create(
-            ip_address=ip, user_agent=self.request.META.get('HTTP_USER_AGENT', '')[:255]
+            source=source, ip_address=ip, user_agent=self.request.META.get('HTTP_USER_AGENT', '')[:255]
         )
 
     def error(self, message, status, conversation=None):
@@ -189,3 +200,25 @@ class ChatView(View):
         if conversation:
             data['conversation_id'] = str(conversation.id)
         return JsonResponse(data, status=status)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RetentionPurgeView(View):
+    """Borra los datos caducados (retention.purge_expired) a petición de n8n.
+
+    La llama cada día n8n/retention-purge.workflow.json, de servidor a
+    servidor: sin CSRF, autenticada con el mismo X-Webhook-Token que n8n ya
+    recibe de esta web. Sin N8N_WEBHOOK_TOKEN configurado no existe (404).
+    """
+
+    http_method_names = ['post']
+
+    def post(self, request, *args, **kwargs):
+        expected = settings.N8N_WEBHOOK_TOKEN
+        if not expected:
+            raise Http404
+        received = request.headers.get('x-webhook-token', '')
+        if not hmac.compare_digest(received.encode(), expected.encode()):
+            logger.warning('Purga rechazada: token inválido (ip=%s)', get_client_ip(request))
+            return JsonResponse({'ok': False, 'error': 'token inválido'}, status=401)
+        return JsonResponse({'ok': True, **retention.purge_expired()})

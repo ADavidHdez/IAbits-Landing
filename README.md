@@ -62,7 +62,7 @@ n8n/           Workflows importables en n8n (webhook de leads y agente del chat)
 requirements/  base.txt + development.txt + production.txt
 ```
 
-**URLs**: `/` → home · `/landing/` → landing · `/landing/chat/` → chat (POST JSON) ·
+**URLs**: `/` → home · `/landing/` → landing · `/chat/` → chat (POST JSON) ·
 `/accounts/login/` → acceso de staff · `/robots.txt` · `/sitemap.xml` · admin en
 `ADMIN_URL` (ruta secreta en producción).
 

@@ -27,6 +27,11 @@ def home_json_ld(request) -> str:
     business = organization(request, schema_type='ProfessionalService')
     business['description'] = content.SITE['meta_description']
     business['makesOffer'] = [offer(product) for product in content.PRODUCTS]
+    # Perfiles oficiales de la empresa (no los personales): Google los usa
+    # para asociar la cuenta de Instagram a IAbits.
+    same_as = [s['url'] for s in content.SOCIAL_LINKS if s['organization']]
+    if same_as:
+        business['sameAs'] = same_as
     website = {
         '@type': 'WebSite',
         '@id': home_url(request) + '#web',

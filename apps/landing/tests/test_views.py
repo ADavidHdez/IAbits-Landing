@@ -41,6 +41,7 @@ class LandingViewPostTests(TestCase):
             'service_interest': 'base-conocimiento',
             'message': 'Quiero una base de conocimiento.',
             'website': '',
+            'privacy': 'on',
         }
 
     def test_valid_post_creates_lead_and_redirects(self):
@@ -50,6 +51,18 @@ class LandingViewPostTests(TestCase):
         self.assertEqual(lead.email, 'ana@empresa.com')
         self.assertEqual(lead.message, 'Quiero una base de conocimiento.')
         self.assertRedirects(response, self.url + '#contacto')
+
+    def test_form_has_optional_phone_field(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, 'name="phone"')
+        self.assertContains(response, 'type="tel"')
+
+        # Opcional: sin teléfono se guarda igual; con él, se guarda tal cual.
+        self.client.post(self.url, self.data)
+        self.client.post(self.url, {**self.data, 'phone': '+34 600 000 000'})
+        self.assertEqual(
+            sorted(Lead.objects.values_list('phone', flat=True)), ['', '+34 600 000 000']
+        )
 
     def test_valid_post_shows_success_message(self):
         response = self.client.post(self.url, self.data, follow=True)
@@ -84,6 +97,7 @@ class LandingViewAjaxPostTests(TestCase):
             'service_interest': 'base-conocimiento',
             'message': 'Quiero una base de conocimiento.',
             'website': '',
+            'privacy': 'on',
         }
 
     def post(self, data):
@@ -124,6 +138,7 @@ class SecurityTests(TestCase):
             'service_interest': 'base-conocimiento',
             'message': 'Quiero una base de conocimiento.',
             'website': '',
+            'privacy': 'on',
         }
 
     def test_post_without_csrf_token_is_rejected(self):
@@ -178,6 +193,7 @@ class LeadThrottleTests(TestCase):
             'service_interest': 'base-conocimiento',
             'message': 'Quiero una base de conocimiento.',
             'website': '',
+            'privacy': 'on',
         }
 
     def post(self, ajax=False, ip='203.0.113.7'):

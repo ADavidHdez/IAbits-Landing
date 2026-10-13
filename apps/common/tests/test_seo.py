@@ -35,7 +35,7 @@ class RobotsTxtTests(TestCase):
     def test_permite_la_web_y_bloquea_login_y_chat(self):
         self.assertIn('Allow: /\n', self.body)
         self.assertIn('Disallow: /accounts/\n', self.body)
-        self.assertIn(f'Disallow: {reverse("landing:chat")}\n', self.body)
+        self.assertIn(f'Disallow: {reverse("chat")}\n', self.body)
 
     def test_enlaza_el_sitemap_con_url_absoluta(self):
         self.assertIn('Sitemap: http://testserver/sitemap.xml', self.body)

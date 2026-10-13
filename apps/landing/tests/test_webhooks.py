@@ -56,7 +56,7 @@ class SendLeadTests(TestCase):
         self.assertEqual(payload['source'], 'landing')
         self.assertEqual(payload['lead']['id'], str(lead.id))
         self.assertEqual(payload['lead']['email'], 'ana@empresa.com')
-        self.assertEqual(payload['lead']['service_label'], 'Base de conocimiento con IA')
+        self.assertEqual(payload['lead']['service_label'], 'Bases de conocimiento')
         self.assertEqual(payload['lead']['ip_address'], '203.0.113.7')
         self.assertEqual(payload['lead']['origin'], 'landing')
 
@@ -140,6 +140,7 @@ class LandingViewWebhookTests(TestCase):
             'service_interest': 'base-conocimiento',
             'message': 'Quiero una base de conocimiento.',
             'website': '',
+            'privacy': 'on',
         }
 
     def test_valid_post_sends_lead_to_n8n(self):

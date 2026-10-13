@@ -3,8 +3,9 @@ from urllib.parse import urlencode
 from django.urls import reverse
 from django.views.generic import CreateView, TemplateView
 
+from apps.landing import chat
 from apps.landing.forms import ContactForm
-from apps.landing.models import Lead
+from apps.landing.models import ChatConversation, Lead
 from apps.landing.views import LeadSubmitMixin
 
 from . import content, seo
@@ -16,6 +17,9 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx.update(content.get_home_context())
+        # Mismo chat que la landing, con conversación propia. Aquí no hay
+        # formulario en la página: si el chat falla, el enlace lleva a /contacto/.
+        ctx.update(chat.widget_context(ChatConversation.Source.HOME, reverse('home:contact')))
         ctx['json_ld'] = seo.home_json_ld(self.request)
         return ctx
 

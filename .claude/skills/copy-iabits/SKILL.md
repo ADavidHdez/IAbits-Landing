@@ -27,7 +27,7 @@ diccionario corresponde a cada sección.
 Vende **el resultado**, no la tecnología. El cliente no compra agentes de IA: compra
 tiempo recuperado, costes que bajan y poder crecer sin contratar.
 
-- ✅ "Recupera cientos de horas al mes"
+- ✅ "Descubre qué procesos de tu negocio puedes automatizar con IA"
 - ❌ "Implementamos arquitecturas multiagente con LLMs de última generación"
 
 Sé concreto con el beneficio y con el mecanismo:
@@ -55,10 +55,15 @@ Sé concreto con el beneficio y con el mecanismo:
 | Título de servicio | 4–8 palabras |
 | Descripción de servicio | 2 frases, 20–35 palabras |
 | Propuesta de valor | Título de 2–3 palabras + 1–2 frases |
-| Llamada a la acción | Verbo en primera persona ("Quiero mi diagnóstico gratuito") |
+| Llamada a la acción | Verbo en primera persona ("Quiero más información") |
 
 Las llamadas a la acción se escriben desde la voz del visitante, no de la empresa:
-"Quiero mi diagnóstico gratuito" funciona mejor que "Solicita información".
+"Quiero más información" funciona mejor que "Solicita información".
+
+La landing ofrece **pedir información**, no el diagnóstico: el Diagnóstico es un
+producto de pago (precio en `PRODUCTS` de `apps/home/content.py`) que se vende después
+del primer contacto. Nunca lo presentes como gratuito ni lo pongas en una CTA de la
+landing junto a "sin compromiso".
 
 ## Antes de dar por bueno un texto
 

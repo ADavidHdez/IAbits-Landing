@@ -1,6 +1,7 @@
 from django import forms
 
 from apps.home import content as home_content
+from apps.legal import content as legal_content
 
 from . import content
 from .models import Lead
@@ -8,6 +9,15 @@ from .models import Lead
 
 class BaseLeadForm(forms.ModelForm):
     """Parte común de los formularios que crean un Lead (landing y contacto)."""
+
+    # Casilla obligatoria de la política de privacidad. No se guarda en el
+    # Lead: sin marcarla no hay envío, así que todo lead la aceptó al crearse.
+    # El texto con el enlace lo pinta templates/partials/form-consent.html.
+    privacy = forms.BooleanField(
+        required=True,
+        label=legal_content.FORM_CONSENT['link_text'],
+        error_messages={'required': legal_content.FORM_CONSENT['required_message']},
+    )
 
     # Honeypot: oculto vía CSS (.hp-field). La vista descarta en silencio los
     # envíos que lo traigan relleno, sin revelar al bot cuál es el campo trampa.
@@ -32,17 +42,19 @@ class BaseLeadForm(forms.ModelForm):
 class LeadForm(BaseLeadForm):
     class Meta:
         model = Lead
-        fields = ['name', 'email', 'company', 'service_interest', 'message']
+        fields = ['name', 'email', 'phone', 'company', 'service_interest', 'message']
         labels = {
             'name': 'Nombre',
             'email': 'Email',
+            'phone': 'Teléfono',
             'company': 'Empresa',
             'message': 'Mensaje',
         }
         widgets = {
             'name': forms.TextInput(attrs={'placeholder': 'Tu nombre'}),
             'email': forms.EmailInput(attrs={'placeholder': 'tu@empresa.com'}),
-            'company': forms.TextInput(attrs={'placeholder': 'Nombre de tu empresa (opcional)'}),
+            'phone': forms.TextInput(attrs={'placeholder': '+34 600 000 000', 'type': 'tel'}),
+            'company': forms.TextInput(attrs={'placeholder': 'Nombre de tu empresa'}),
             'message': forms.Textarea(attrs={
                 'placeholder': '¿Qué proceso te gustaría automatizar?',
                 'rows': 4,
@@ -77,8 +89,8 @@ class ContactForm(BaseLeadForm):
         widgets = {
             'name': forms.TextInput(attrs={'placeholder': 'Tu nombre'}),
             'email': forms.EmailInput(attrs={'placeholder': 'tu@empresa.com'}),
-            'phone': forms.TextInput(attrs={'placeholder': '+34 600 000 000 (opcional)', 'type': 'tel'}),
-            'company': forms.TextInput(attrs={'placeholder': 'Nombre de tu empresa (opcional)'}),
+            'phone': forms.TextInput(attrs={'placeholder': '+34 600 000 000', 'type': 'tel'}),
+            'company': forms.TextInput(attrs={'placeholder': 'Nombre de tu empresa'}),
             'message': forms.Textarea(attrs={
                 'placeholder': 'Cuéntanos qué necesitas',
                 'rows': 4,

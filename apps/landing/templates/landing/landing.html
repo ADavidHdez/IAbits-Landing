@@ -17,6 +17,7 @@
     --color-text: {{ theme.color_text }};
     --color-muted: {{ theme.color_muted }};
     --color-border: {{ theme.color_border }};
+    --color-accent: {{ theme.color_accent }};
     --radius: {{ theme.radius }};
     --max-width: {{ theme.max_width }};
   }
@@ -143,6 +144,11 @@ solo comenta una única línea y el resto se renderiza como HTML.
         {{ form.email }}
         {{ form.email.errors }}
       </div>
+      <div class="form-field" data-field="phone">
+        {{ form.phone.label_tag }}
+        {{ form.phone }}
+        {{ form.phone.errors }}
+      </div>
       <div class="form-field" data-field="company">
         {{ form.company.label_tag }}
         {{ form.company }}
@@ -158,6 +164,7 @@ solo comenta una única línea y el resto se renderiza como HTML.
         {{ form.message }}
         {{ form.message.errors }}
       </div>
+      {% include 'partials/form-consent.html' %}
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" data-sending-text="{{ form_section.sending_text }}">{{ form_section.submit_text }}</button>
       </div>
@@ -173,6 +180,7 @@ solo comenta una única línea y el resto se renderiza como HTML.
 <footer class="footer">
   <div class="container">
     <p>{{ footer.text }}{% if contact.email %} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}{% if contact.phone %} · {{ contact.phone }}{% endif %}</p>
+    {% include 'partials/legal-links.html' %}
   </div>
 </footer>
 

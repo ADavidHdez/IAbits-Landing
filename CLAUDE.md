@@ -8,7 +8,8 @@ Two independent sites with no links between them:
   contact page with its own form (`ContactForm`). The slug sets the `<h1>` and a hidden,
   server-validated `product` field (`content.contact_requests()`: `PRODUCTS` + `INFO_REQUEST`,
   the fallback when the slug is missing or unknown).
-- `/landing/` — lead-capture landing: form → DB → n8n webhook, plus an optional AI chat widget.
+- `/landing/` — lead-capture landing: form → DB → n8n webhook, plus an optional AI chat widget
+  (the same widget also appears on `/`, with its own conversation).
 
 Both forms save a `Lead`; `Lead.source` (`landing` / `contacto`) tells them apart.
 
@@ -32,7 +33,7 @@ Both forms save a `Lead`; `Lead.source` (`landing` / `contacto`) tells them apar
    allowed is the theme `<style>`, which carries a nonce.
 4. **No secrets in the repo.** Everything goes through env vars via `python-decouple`
    (template: `.env.example`).
-5. **Tests with every logic change**: `python manage.py test apps` (145 passing, Oct 2026).
+5. **Tests with every logic change**: `python manage.py test apps` (178 passing, Oct 2026).
 6. No new dependencies without a real need — the stack is deliberately small.
 
 ---
@@ -43,14 +44,16 @@ Both forms save a `Lead`; `Lead.source` (`landing` / `contacto`) tells them apar
 |---|---|---|
 | `apps/landing/content.py` | Landing copy, `SERVICES`, `CHAT`, plus shared `BRAND`/`THEME`/`CONTACT` | Changing landing copy or any colour |
 | `apps/home/content.py` | Home copy: `PRODUCTS`, `SUPPORT_PLANS`, `TECH_ITEMS`, `TEAM`… · contact page: `CONTACT_SITE`, `CONTACT_FORM`, `CONTACT_PREFERENCES`, `INFO_REQUEST`, `contact_requests()`, `product_choices()` | Changing home copy |
-| `apps/landing/models.py` | `Lead` (UUID pk, `source`), `ChatConversation`, `ChatMessage` | New field → migration |
-| `apps/landing/forms.py` | `BaseLeadForm` (`website` honeypot + message length) → `LeadForm` (landing) and `ContactForm` (`/contacto/`) | Form fields |
-| `apps/landing/views.py` | `LeadSubmitMixin` (honeypot, shared per-IP throttle, AJAX/JSON, sets `source`) · `LandingView` · `ChatView` (`POST /landing/chat/`) | Submit and chat logic |
+| `apps/landing/models.py` | `Lead` (UUID pk, `source`), `ChatConversation` (`source`: `landing` / `home`), `ChatMessage` | New field → migration |
+| `apps/landing/forms.py` | `BaseLeadForm` (`website` honeypot, required `privacy` checkbox, message length) → `LeadForm` (landing) and `ContactForm` (`/contacto/`) | Form fields |
+| `apps/landing/views.py` | `LeadSubmitMixin` (honeypot, shared per-IP throttle, AJAX/JSON, sets `source`) · `LandingView` · `ChatView` (`POST /chat/`) | Submit and chat logic |
 | `apps/landing/webhooks.py` | Sends the lead to n8n (stdlib `urllib`, background thread) | n8n lead integration |
-| `apps/landing/chat.py` | Synchronous call to the n8n AI agent | Chat integration |
+| `apps/landing/chat.py` | Synchronous call to the n8n AI agent · `widget_context()` for any page that shows the chat | Chat integration |
+| `apps/landing/retention.py` | `purge_expired()`: deletes leads > `LEAD_RETENTION_DAYS` and chats > `CHAT_RETENTION_DAYS`. Run daily by n8n via `RetentionPurgeView` (`POST /interno/purgar-datos/`, `X-Webhook-Token`) or by hand with `manage.py purgar_datos` | Retention periods (keep in sync with `apps/legal/content.RETENTION`) |
 | `apps/landing/admin.py` | Leads table + "Reenviar a n8n" action · read-only chat conversations | `/admin/` panel |
-| `apps/landing/templates/landing/` | `landing.html` + `partials/chat-widget.html` (only included when chat is enabled) | Section structure |
+| `apps/landing/templates/landing/` | `landing.html` + `partials/chat-widget.html` (shared with the home; only included when chat is enabled) | Section structure |
 | `apps/home/` | `HomeView` (TemplateView) + `home/home.html` · `ContactView` (`LeadSubmitMixin` + CreateView) + `home/contact.html`. No models of its own | Company presentation, contact page |
+| `apps/legal/` | Legal notice, privacy and cookie pages (one shared template, `noindex`, no link to either site). `content.py` holds the texts, `OWNER`, `RETENTION`, `FOOTER_LINKS`, `FORM_CONSENT`; its context processor feeds `partials/legal-links.html` (every footer) and `partials/form-consent.html` (both lead forms) | A provider, retention period or stored data changes → update `PRIVACY`/`COOKIES` and `UPDATED` |
 | `apps/accounts/` | Custom `User`, `LoginAttempt`, `ThrottledLoginView`. Staff only, no sign-up | Rarely |
 | `apps/common/http.py` | `get_client_ip()`: spoof-proof visitor IP | Anything IP-based |
 | `apps/common/{seo,views,sitemaps,context_processors}.py` | Canonical URL, HTML-safe `json_ld()`, `robots.txt`, `sitemap.xml`, `/favicon.ico` redirect | New indexable page → add it to `StaticViewSitemap` |
@@ -61,9 +64,10 @@ Both forms save a `Lead`; `Lead.source` (`landing` / `contacto`) tells them apar
 | `static/js/*.js` | `lead-form` (AJAX), `chat`, `reveal`, `cards-3d`, `confetti`, `timeline` — landing; `lead-form` + `confetti` also on `/contacto/` | Design tasks only |
 | `config/settings/{base,development,production}.py` | Per-environment settings | New env var |
 | `requirements/{base,development,production}.txt` | Dependencies (`factory-boy` dev-only; `gunicorn`, `psycopg2`, `dj-database-url` prod-only) | New dependency |
-| `n8n/*.workflow.json` | Importable n8n workflows: lead webhook and chat agent (system prompt included) | Payload or agent behaviour changes |
+| `n8n/*.workflow.json` | Importable n8n workflows: lead webhook, chat agent (system prompt included) and daily retention purge (web + Airtable) | Payload or agent behaviour changes |
 
-**URLs**: `/` · `/contacto/` · `/landing/` · `/landing/chat/` (POST JSON) · `/accounts/login/` · `/robots.txt` ·
+**URLs**: `/` · `/contacto/` · `/landing/` · `/chat/` (POST JSON) · `/aviso-legal/` · `/privacidad/` ·
+`/cookies/` · `/interno/purgar-datos/` (POST, n8n token) · `/accounts/login/` · `/robots.txt` ·
 `/sitemap.xml` · `/favicon.ico` · admin at `settings.ADMIN_URL` (secret in prod; **never**
 in `robots.txt`).
 
@@ -75,6 +79,8 @@ in `robots.txt`).
   them as `var(--color-primary, #fallback)`. Changing a colour = editing `content.py`.
 - **Services**: `content.service_choices()` feeds the form `<select>`. Adding to
   `SERVICES` updates page and form **without a migration**.
+  The home's `TECH_ITEMS` must list the **same services** (own copy, linked by the
+  `service` slug): `test_home_and_landing_offer_the_same_services` fails otherwise.
 - **Lead form, three defence layers**: `website` honeypot (fakes success), DB-backed
   per-IP throttle (`LEAD_THROTTLE_*`, safe across workers) and CSRF.
 - **Visitor IP**: always via `apps.common.http.get_client_ip()` — it takes the entry
@@ -92,7 +98,9 @@ in `robots.txt`).
   no chat). The n8n call is **synchronous** (`N8N_CHAT_TIMEOUT` < gunicorn's 60 s), hence
   gunicorn's `--threads`. Conversation memory is the DB: Django sends the full history on
   each request. Throttle (`CHAT_THROTTLE_*`) counts the sender's IP per message. Agent
-  replies are rendered with `textContent`, never `innerHTML`.
+  replies are rendered with `textContent`, never `innerHTML`. Landing and home share the
+  widget and endpoint but not conversations: the hidden `source` field is stored in
+  `ChatConversation.source` and an id only continues from the page that created it.
 - **SEO**: each page's `title` / `meta_description` live in its `SITE` dict (≤ 60 / ≤ 158
   chars, enforced by a test) and feed `<title>`, meta, Open Graph and JSON-LD. `BRAND`
   reaches every template through `apps.landing.context_processors.brand`. No absolute

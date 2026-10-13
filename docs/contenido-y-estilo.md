@@ -67,6 +67,7 @@ THEME = {
     'color_text': '#111827',
     'color_muted': '#6b7280',
     'color_border': '#e5e7eb',
+    'color_accent': '#e02424',   # avisos que piden atención (contador del chat)
     'radius': '12px',
     'max_width': '1080px',
 }

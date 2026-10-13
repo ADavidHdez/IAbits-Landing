@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ site.title }}{% endblock %}
+
+{# Páginas de trámite: fuera de los buscadores (y sin canónica, que diría lo contrario). #}
+{% block canonical %}{% endblock %}
+{% block meta %}
+  <meta name="robots" content="noindex, follow">
+  <meta name="description" content="{{ site.meta_description }}">
+{% endblock %}
+
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+  :root {
+    --color-primary: {{ theme.color_primary }};
+    --color-primary-dark: {{ theme.color_primary_dark }};
+    --color-bg: {{ theme.color_bg }};
+    --color-surface: {{ theme.color_surface }};
+    --color-text: {{ theme.color_text }};
+    --color-muted: {{ theme.color_muted }};
+    --color-border: {{ theme.color_border }};
+    --color-accent: {{ theme.color_accent }};
+    --radius: {{ theme.radius }};
+    --max-width: {{ theme.max_width }};
+  }
+</style>
+{% endblock %}
+
+{% comment %}
+Común a la home y a la landing: se queda con la cabecera de base.html (solo el
+logo, sin enlaces) para no unir las dos webs. Los textos salen de
+apps/legal/content.py; urlize enlaza los emails y las URL de los párrafos.
+{% endcomment %}
+{% block content %}
+<article class="legal">
+  <div class="container container-narrow">
+    <h1>{{ page.heading }}</h1>
+    <p class="legal-updated">{{ updated_label }}: {{ updated }}</p>
+    {% for section in page.sections %}
+    <h2>{{ section.title }}</h2>
+    {% for block in section.body %}
+    {% if block.ul %}
+    <ul>
+      {% for item in block.ul %}<li>{{ item|urlize }}</li>{% endfor %}
+    </ul>
+    {% else %}
+    <p>{{ block.p|urlize }}</p>
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+  </div>
+</article>
+
+<footer class="footer">
+  <div class="container">
+    <p>{{ footer.text }}</p>
+    {% include 'partials/legal-links.html' %}
+  </div>
+</footer>
+{% endblock %}

@@ -63,11 +63,13 @@ class ChatMessageInline(admin.TabularInline):
 class ChatConversationAdmin(admin.ModelAdmin):
     """Conversaciones del chat, solo lectura: se consultan o se borran."""
 
-    list_display = ['created_at', 'first_message', 'message_count', 'ip_address', 'updated_at']
-    list_filter = ['created_at']
+    list_display = [
+        'created_at', 'source', 'first_message', 'message_count', 'ip_address', 'updated_at',
+    ]
+    list_filter = ['source', 'created_at']
     search_fields = ['messages__text', 'ip_address']
     date_hierarchy = 'created_at'
-    readonly_fields = ['id', 'ip_address', 'user_agent', 'created_at', 'updated_at']
+    readonly_fields = ['id', 'source', 'ip_address', 'user_agent', 'created_at', 'updated_at']
     inlines = [ChatMessageInline]
 
     def get_queryset(self, request):

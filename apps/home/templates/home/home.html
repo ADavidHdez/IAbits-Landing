@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load l10n static %}
 
 {% block title %}{{ site.title }}{% endblock %}
 
@@ -17,9 +17,19 @@
     --color-text: {{ theme.color_text }};
     --color-muted: {{ theme.color_muted }};
     --color-border: {{ theme.color_border }};
+    --color-accent: {{ theme.color_accent }};
     --radius: {{ theme.radius }};
     --max-width: {{ theme.max_width }};
   }
+  {# Encuadre de cada foto del equipo (TEAM en content.py). Va aquí y no en un  #}
+  {# style="" porque la CSP solo admite este bloque con nonce. unlocalize evita #}
+  {# que el locale es-es escriba "1,3", que el CSS no entiende.                  #}
+  {% for member in team %}{% if member.photo %}
+  .team-photo-{{ forloop.counter }} {
+    --photo-zoom: {{ member.photo_zoom|default:1|unlocalize }};
+    --photo-focus: {{ member.photo_focus|default:'50% 50%' }};
+  }
+  {% endif %}{% endfor %}
 </style>
 {% endblock %}
 
@@ -31,6 +41,9 @@
     </a>
     <ul class="site-nav-links">
       <li><a href="{% url 'home:home' %}" aria-current="page">{{ nav.home_text }}</a></li>
+      {% for section in nav.sections %}
+      <li><a href="#{{ section.anchor }}">{{ section.text }}</a></li>
+      {% endfor %}
     </ul>
   </nav>
 </header>
@@ -61,62 +74,9 @@
   </div>
 </section>
 
-<section class="products" id="servicios">
-  <div class="container">
-    <h2>{{ products_section.title }}</h2>
-    <p class="section-sub">{{ products_section.subtitle }}</p>
-    <div class="products-grid">
-      {% for product in products %}
-      <article class="product{% if product.featured %} product-featured{% endif %}">
-        {% if product.featured %}<p class="product-badge">{{ products_featured_label }}</p>{% endif %}
-        <h3>{{ product.name }}</h3>
-        <p class="product-summary">{{ product.summary }}</p>
-        <p class="product-price">
-          <span class="product-amount">{{ product.price }}</span>
-          <span class="product-price-note">{{ product.price_note }}</span>
-        </p>
-        <ul class="product-features">
-          {% for feature in product.features %}
-          <li>{{ feature }}</li>
-          {% endfor %}
-        </ul>
-        <a class="btn {% if product.featured %}btn-primary{% else %}btn-outline{% endif %}"
-           href="{% url 'home:contact' %}?producto={{ product.slug|urlencode }}">{{ product.cta_text }}</a>
-      </article>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-<section class="support" id="soporte">
-  <div class="container">
-    <h2>{{ support_section.title }}</h2>
-    <p class="section-sub">{{ support_section.subtitle }}</p>
-    <div class="support-grid">
-      {% for plan in support_plans %}
-      <article class="product{% if plan.featured %} product-featured{% endif %}">
-        {% if plan.featured %}<p class="product-badge">{{ products_featured_label }}</p>{% endif %}
-        <h3>{{ plan.name }}</h3>
-        <p class="product-summary">{{ plan.summary }}</p>
-        <p class="product-price">
-          <span class="product-amount">{{ plan.price }}</span>
-          <span class="product-price-note">{{ plan.price_note }}</span>
-        </p>
-        <ul class="product-features">
-          {% for feature in plan.features %}
-          <li>{{ feature }}</li>
-          {% endfor %}
-        </ul>
-      </article>
-      {% endfor %}
-    </div>
-    <div class="support-cta">
-      <a class="btn btn-outline" href="{% url 'home:contact' %}?producto={{ info_request.slug|urlencode }}">{{ support_section.cta_text }}</a>
-    </div>
-  </div>
-</section>
-
-<section class="tech" id="tecnologia">
+{# Orden pensado para la venta: primero qué automatizamos (el valor) y solo #}
+{# después los precios, el soporte y el equipo.                               #}
+<section class="tech" id="automatizamos">
   <div class="container">
     <h2>{{ tech_section.title }}</h2>
     <p class="section-sub tech-powered">
@@ -143,6 +103,64 @@
   </div>
 </section>
 
+<section class="products" id="planes">
+  <div class="container">
+    <h2>{{ products_section.title }}</h2>
+    <p class="section-sub">{{ products_section.subtitle }}</p>
+    <div class="products-grid">
+      {% for product in products %}
+      <article class="product{% if product.featured %} product-featured{% endif %}">
+        {% if product.featured %}<p class="product-badge">{{ products_featured_label }}</p>{% endif %}
+        <h3>{{ product.name }}</h3>
+        <p class="product-summary">{{ product.summary }}</p>
+        <p class="product-price">
+          <span class="product-amount">{{ product.price }}</span>
+          <span class="product-price-note">{{ product.price_note }}</span>
+          <span class="product-tax-note">{{ price_tax_note }}</span>
+        </p>
+        <ul class="product-features">
+          {% for feature in product.features %}
+          <li>{{ feature }}</li>
+          {% endfor %}
+        </ul>
+        <a class="btn {% if product.featured %}btn-primary{% else %}btn-outline{% endif %}"
+           href="{% url 'home:contact' %}?producto={{ product.slug|urlencode }}">{{ product.cta_text }}</a>
+        {% if product.cta_note %}<p class="product-cta-note">{{ product.cta_note }}</p>{% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="support" id="soporte">
+  <div class="container">
+    <h2>{{ support_section.title }}</h2>
+    <p class="section-sub">{{ support_section.subtitle }}</p>
+    <div class="support-grid">
+      {% for plan in support_plans %}
+      <article class="product{% if plan.featured %} product-featured{% endif %}">
+        {% if plan.featured %}<p class="product-badge">{{ support_featured_label }}</p>{% endif %}
+        <h3>{{ plan.name }}</h3>
+        <p class="product-summary">{{ plan.summary }}</p>
+        <p class="product-price">
+          <span class="product-amount">{{ plan.price }}</span>
+          <span class="product-price-note">{{ plan.price_note }}</span>
+          <span class="product-tax-note">{{ price_tax_note }}</span>
+        </p>
+        <ul class="product-features">
+          {% for feature in plan.features %}
+          <li>{{ feature }}</li>
+          {% endfor %}
+        </ul>
+      </article>
+      {% endfor %}
+    </div>
+    <div class="support-cta">
+      <a class="btn btn-outline" href="{% url 'home:contact' %}?producto={{ info_request.slug|urlencode }}">{{ support_section.cta_text }}</a>
+    </div>
+  </div>
+</section>
+
 <section class="team" id="equipo">
   <div class="container">
     <h2>{{ team_section.title }}</h2>
@@ -151,7 +169,10 @@
       {% for member in team %}
       <article class="team-member">
         {% if member.photo %}
-          <img class="photo team-photo" src="{% static member.photo %}" alt="{{ member.name }}">
+          {# El círculo recorta y la imagen se acerca dentro (encuadre en el <style> de arriba). #}
+          <div class="photo team-photo team-photo-{{ forloop.counter }}">
+            <img class="team-photo-img" src="{% static member.photo %}" alt="{{ member.name }}" loading="lazy">
+          </div>
         {% else %}
           <div class="photo photo-placeholder team-photo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
@@ -173,9 +194,10 @@
   </div>
 </section>
 
-<footer class="footer">
-  <div class="container">
-    <p>{{ footer.text }}{% if contact.email %} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}{% if contact.phone %} · {{ contact.phone }}{% endif %}</p>
-  </div>
-</footer>
+{% include 'home/partials/footer.html' %}
+{% if chat_enabled %}{% include 'landing/partials/chat-widget.html' %}{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if chat_enabled %}<script src="{% static 'js/chat.js' %}" defer></script>{% endif %}
 {% endblock %}

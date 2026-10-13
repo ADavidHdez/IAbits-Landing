@@ -29,12 +29,12 @@ def fake_response(body):
 @override_settings(**CHAT_SETTINGS)
 class ChatViewTests(TestCase):
     def setUp(self):
-        self.url = reverse('landing:chat')
+        self.url = reverse('chat')
 
-    def post(self, message='¿Qué podéis automatizar?', conversation_id='', **extra):
+    def post(self, message='¿Qué podéis automatizar?', conversation_id='', source='landing', **extra):
         return self.client.post(
             self.url,
-            {'message': message, 'conversation_id': conversation_id},
+            {'message': message, 'conversation_id': conversation_id, 'source': source},
             headers={'x-requested-with': 'XMLHttpRequest'},
             **extra,
         )
@@ -95,6 +95,32 @@ class ChatViewTests(TestCase):
                 response = self.post(conversation_id=bad_id)
             self.assertEqual(response.status_code, 200)
         self.assertEqual(ChatConversation.objects.count(), 2)
+
+    def test_conversation_records_its_page_and_sends_it_to_n8n(self):
+        for source in ('landing', 'home'):
+            with patch(URLOPEN, return_value=fake_response({'reply': 'ok'})) as urlopen:
+                self.post(source=source)
+            self.assertEqual(json.loads(urlopen.call_args.args[0].data)['page'], source)
+        self.assertEqual(
+            sorted(ChatConversation.objects.values_list('source', flat=True)), ['home', 'landing']
+        )
+
+    def test_missing_or_unknown_page_counts_as_landing(self):
+        for source in ('', 'admin'):
+            with patch(URLOPEN, return_value=fake_response({'reply': 'ok'})):
+                self.post(source=source)
+        self.assertEqual(ChatConversation.objects.filter(source='landing').count(), 2)
+
+    def test_conversation_of_one_page_is_not_continued_from_the_other(self):
+        """La landing y la home llevan conversaciones independientes."""
+        with patch(URLOPEN, return_value=fake_response({'reply': 'ok'})):
+            landing_id = self.post(source='landing').json()['conversation_id']
+        with patch(URLOPEN, return_value=fake_response({'reply': 'ok'})) as urlopen:
+            response = self.post(conversation_id=landing_id, source='home')
+
+        self.assertNotEqual(response.json()['conversation_id'], landing_id)
+        self.assertEqual(json.loads(urlopen.call_args.args[0].data)['history'], [])
+        self.assertEqual(ChatConversation.objects.get(pk=landing_id).messages.count(), 2)
 
     def test_empty_message_is_rejected(self):
         with patch(URLOPEN) as urlopen:
@@ -160,7 +186,7 @@ class ChatViewTests(TestCase):
 @override_settings(**CHAT_SETTINGS, CHAT_THROTTLE_MAX=3, CHAT_THROTTLE_WINDOW_MINUTES=60)
 class ChatThrottleTests(TestCase):
     def setUp(self):
-        self.url = reverse('landing:chat')
+        self.url = reverse('chat')
 
     def post(self, conversation_id='', **extra):
         with patch(URLOPEN, return_value=fake_response({'reply': 'ok'})):
@@ -203,7 +229,7 @@ class ChatThrottleTests(TestCase):
 class ChatDisabledTests(TestCase):
     @override_settings(N8N_CHAT_WEBHOOK_URL='')
     def test_endpoint_returns_404_when_disabled(self):
-        response = self.client.post(reverse('landing:chat'), {'message': 'Hola'})
+        response = self.client.post(reverse('chat'), {'message': 'Hola'})
         self.assertEqual(response.status_code, 404)
         self.assertEqual(ChatMessage.objects.count(), 0)
 
@@ -232,10 +258,16 @@ class ChatWidgetRenderTests(TestCase):
         self.assertContains(response, 'data-chat')
         self.assertContains(response, 'js/chat.js')
         self.assertContains(response, content.CHAT['greeting'])
-        self.assertContains(response, reverse('landing:chat'))
+        self.assertContains(response, reverse('chat'))
         self.assertContains(response, f'maxlength="{chat.MESSAGE_MAX_LENGTH}"')
         # Llega oculto: solo chat.js lo muestra, así que sin JS no aparece.
         self.assertContains(response, 'class="chat" hidden')
+        self.assertContains(response, 'name="source" value="landing"')
+        self.assertContains(response, f'data-form-anchor="{content.CHAT["form_anchor"]}"')
+        # La burbuja de bienvenida también llega oculta: la asoma chat.js.
+        self.assertContains(response, 'class="chat-teaser" hidden')
+        self.assertContains(response, content.CHAT['teaser'])
+        self.assertContains(response, content.CHAT['teaser_close_label'])
 
     @override_settings(**CHAT_SETTINGS)
     def test_widget_adds_nothing_inline(self):
@@ -246,3 +278,28 @@ class ChatWidgetRenderTests(TestCase):
         self.assertNotIn(' style=', widget)
         self.assertNotIn(' onclick=', widget)
         self.assertNotIn('<script', widget)
+
+
+class HomeChatWidgetRenderTests(TestCase):
+    """La home lleva el mismo widget, con su propio origen y enlace a /contacto/."""
+
+    def setUp(self):
+        self.url = reverse('home:home')
+
+    @override_settings(N8N_CHAT_WEBHOOK_URL='')
+    def test_widget_is_not_rendered_when_disabled(self):
+        response = self.client.get(self.url)
+        self.assertNotContains(response, 'data-chat')
+        self.assertNotContains(response, 'js/chat.js')
+
+    @override_settings(**CHAT_SETTINGS)
+    def test_widget_is_rendered_for_the_home(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, 'class="chat" hidden')
+        self.assertContains(response, 'js/chat.js')
+        self.assertContains(response, content.CHAT['greeting'])
+        self.assertContains(response, reverse('chat'))
+        self.assertContains(response, 'name="source" value="home"')
+        self.assertContains(response, f'data-form-anchor="{reverse("home:contact")}"')
+        # Webs independientes: con el chat activo, la home sigue sin mencionar /landing/.
+        self.assertNotContains(response, reverse('landing:home'))
